@@ -160,8 +160,28 @@ Analyze the weather simulation and provide your assessment as JSON:
     reasoning_steps.append("Step 5: Determining routing decision for non-linear graph.")
 
     severity = llm_output.get("severity", "LOW")
+    if isinstance(severity, dict):
+        severity = severity.get("severity", "LOW")
+    
     confidence = llm_output.get("confidence", 0.7)
+    if isinstance(confidence, dict):
+        confidence = confidence.get("confidence", 0.7)
+        
     rainfall = llm_output.get("rainfall", sim_result["rainfall_mm"])
+    if isinstance(rainfall, dict):
+        rainfall = next(iter(rainfall.values())) if rainfall else sim_result["rainfall_mm"]
+        
+    wind_speed = llm_output.get("wind_speed", sim_result["wind_speed_kmh"])
+    if isinstance(wind_speed, dict):
+        wind_speed = next(iter(wind_speed.values())) if wind_speed else sim_result["wind_speed_kmh"]
+        
+    humidity = llm_output.get("humidity", sim_result["humidity_pct"])
+    if isinstance(humidity, dict):
+        humidity = next(iter(humidity.values())) if humidity else sim_result["humidity_pct"]
+        
+    temperature = llm_output.get("temperature", sim_result["temperature_c"])
+    if isinstance(temperature, dict):
+        temperature = next(iter(temperature.values())) if temperature else sim_result["temperature_c"]
 
     # Anomaly detection: extreme values that seem unrealistic
     is_anomaly = (rainfall > 200 and confidence < 0.5) or (severity == "CRITICAL" and confidence < 0.4)
@@ -181,14 +201,14 @@ Analyze the weather simulation and provide your assessment as JSON:
     # ------------------------------------------------------------------
     weather_output = {
         "zone": zone_id,
-        "rainfall": rainfall,
-        "wind_speed": llm_output.get("wind_speed", sim_result["wind_speed_kmh"]),
-        "humidity": llm_output.get("humidity", sim_result["humidity_pct"]),
-        "temperature": llm_output.get("temperature", sim_result["temperature_c"]),
-        "severity": severity,
+        "rainfall": float(rainfall),
+        "wind_speed": float(wind_speed),
+        "humidity": float(humidity),
+        "temperature": float(temperature),
+        "severity": str(severity),
         "reasoning_steps": reasoning_steps,
         "tools_used": tools_used,
-        "confidence": confidence,
+        "confidence": float(confidence),
         "routing_decision": routing_decision,
     }
 

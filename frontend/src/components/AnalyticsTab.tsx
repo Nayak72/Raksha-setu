@@ -8,7 +8,7 @@ import { Activity, Users, Shield, TrendingUp, AlertTriangle, Eye, Zap, RefreshCw
 import type { Zone, Alert, Volunteer, Shelter, Detection } from '../lib/supabase';
 
 // ── Simulation helpers ──────────────────────────────────────────
-const REFRESH_INTERVAL = 12_000; // 12 seconds
+const REFRESH_INTERVAL = 5_000; // 5 seconds
 
 function randomInt(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -62,7 +62,7 @@ function generateDetectionTimeline() {
   const now = new Date();
   return Array.from({ length: 12 }).map((_, i) => {
     const t = new Date(now);
-    t.setSeconds(now.getSeconds() - (11 - i) * 12);
+    t.setSeconds(now.getSeconds() - (11 - i) * 5);
     return {
       time: `${t.getHours().toString().padStart(2, '0')}:${t.getMinutes().toString().padStart(2, '0')}:${t.getSeconds().toString().padStart(2, '0')}`,
       persons: randomInt(10, 45),

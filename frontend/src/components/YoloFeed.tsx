@@ -50,15 +50,14 @@ type BoundingBox = {
 
 // Deterministically generate pseudo-random boxes based on detection ID so they don't jitter on re-renders,
 // but DO update when a new detection arrives.
-function generateBoxesForDetection(detectionId: string, count: number): BoundingBox[] {
-  // Use the ID hash to seed randomness loosely
-  let seed = Array.from(detectionId || "mock").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+function generateBoxesForDetection(detectionId: string, count: number, imageIndex: number): BoundingBox[] {
+  // Use the ID hash + imageIndex to seed randomness so boxes jitter on new frames
+  let seed = Array.from(detectionId || "mock").reduce((acc, char) => acc + char.charCodeAt(0), 0) + imageIndex * 100;
   const rnd = () => {
     seed = (seed * 1664525 + 1013904223) % 4294967296;
     return seed / 4294967296;
   };
   
-  // Cap visual boxes at 15 to avoid clutter, but represent the exact data.
   const visualCount = Math.min(count || 0, 15);
   
   return Array.from({ length: visualCount }).map((_, i) => ({
@@ -67,7 +66,7 @@ function generateBoxesForDetection(detectionId: string, count: number): Bounding
     y: rnd() * 50 + 15,
     w: rnd() * 15 + 8,
     h: rnd() * 25 + 15,
-    conf: (rnd() * 0.2 + 0.75).toFixed(2), // 0.75 - 0.95
+    conf: (rnd() * 0.2 + 0.75).toFixed(2),
     label: rnd() > 0.3 ? 'person' : 'vehicle',
   }));
 }
@@ -81,28 +80,19 @@ export default function YoloFeed({ zones, detections }: YoloFeedProps) {
   const [imageIdx, setImageIdx] = useState<Record<string, number>>({});
   const [lastDetIds, setLastDetIds] = useState<Record<string, string>>({});
 
-  // When a new detection arrives for a zone, rotate its image to simulate a new frame
+  // Simulate a constant live feed by rotating images every 5 seconds globally
   useEffect(() => {
-    const newIndices = { ...imageIdx };
-    const newDetIds = { ...lastDetIds };
-    let changed = false;
-    
-    // Process only the latest detections (e.g. top 5)
-    detections.slice(0, 5).forEach(d => {
-      // Just cycle the image whenever we see a detection
-      const current = newIndices[d.zone_id] || 0;
-      if (!newDetIds[d.zone_id] || newDetIds[d.zone_id] !== d.id) {
-        newIndices[d.zone_id] = current + 1;
-        newDetIds[d.zone_id] = d.id;
-        changed = true;
-      }
-    });
-
-    if (changed) {
-      setImageIdx(newIndices);
-      setLastDetIds(newDetIds);
-    }
-  }, [detections]);
+    const timer = setInterval(() => {
+      setImageIdx(prev => {
+        const next = { ...prev };
+        zones.forEach(z => {
+          next[z.id] = (next[z.id] || 0) + 1;
+        });
+        return next;
+      });
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [zones]);
 
   // Aggregate latest detection per zone
   const latestDetectionsByZone = useMemo(() => {
@@ -147,12 +137,12 @@ export default function YoloFeed({ zones, detections }: YoloFeedProps) {
           const currentImage = images[(imageIdx[zone.id] || 0) % images.length];
           
           // Use real detection data to generate boxes
-          const zoneBoxes = det ? generateBoxesForDetection(det.id, det.count) : [];
+          const zoneBoxes = det ? generateBoxesForDetection(det.id, det.count, imageIdx[zone.id] || 0) : [];
           const personCount = zoneBoxes.filter(b => b.label === 'person').length;
           const vehicleCount = zoneBoxes.filter(b => b.label === 'vehicle').length;
 
           // Compute age of detection for visual feedback
-          const isStale = det ? (new Date().getTime() - new Date(det.timestamp).getTime() > 30000) : true;
+          const isStale = det ? (new Date().getTime() - new Date(det.timestamp).getTime() > 15000) : true;
 
           return (
             <div key={zone.id} className={`glass-panel p-3 flex flex-col gap-2 transition-all ${!isStale && det ? 'border-danger-500/50 shadow-[0_0_15px_rgba(239,68,68,0.15)]' : 'border-surface-700'}`}>

@@ -2,7 +2,7 @@
  * Agent Graph Visualization using ReactFlow.
  * Shows the event-driven architecture of the agent system.
  */
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import ReactFlow, {
   Node,
   Edge,
@@ -13,6 +13,8 @@ import ReactFlow, {
   useEdgesState,
   ConnectionMode,
   MarkerType,
+  Handle,
+  Position,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Alert, Detection } from '../lib/supabase';
@@ -66,6 +68,7 @@ function AgentNode({ data }: { data: { label: string; type: string; status: stri
     <div
       className={`${style.bg} ${style.border} border rounded-2xl p-4 min-w-[180px] backdrop-blur-sm shadow-lg ${style.glow}`}
     >
+      <Handle type="target" position={Position.Left} className="!w-2 !h-2 !bg-surface-400 !border-none" />
       <div className="flex items-center gap-2 mb-1.5">
         <span className="text-base">{icons[data.type]}</span>
         <span className={`text-sm font-bold ${style.text}`}>{data.label}</span>
@@ -81,6 +84,7 @@ function AgentNode({ data }: { data: { label: string; type: string; status: stri
           {data.status}
         </span>
       </div>
+      <Handle type="source" position={Position.Right} className="!w-2 !h-2 !bg-surface-400 !border-none" />
     </div>
   );
 }
@@ -362,8 +366,13 @@ export default function AgentGraph({ alerts, detections }: AgentGraphProps) {
     [alerts, detections]
   );
 
-  const [nodes, , onNodesChange] = useNodesState(initialNodes);
-  const [edges, , onEdgesChange] = useEdgesState(initialEdges);
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+  useEffect(() => {
+    setNodes(initialNodes);
+    setEdges(initialEdges);
+  }, [initialNodes, initialEdges, setNodes, setEdges]);
 
   return (
     <div className="w-full h-full rounded-2xl overflow-hidden" id="agent-graph">

@@ -215,6 +215,7 @@ export default function App() {
           statusError={statusError}
           alertCount={recentAlertCount}
           onRefresh={handleRefresh}
+          onNotificationsClick={() => setActivePage('alerts')}
         />
 
         <main className="flex-1 p-5 overflow-y-auto">{renderPage()}</main>

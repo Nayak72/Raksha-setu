@@ -24,7 +24,7 @@ from app.mqtt.client import mqtt_manager
 logger = structlog.get_logger(__name__)
 
 # ── Configuration ──────────────────────────────
-INTERVAL_SECONDS = 12
+INTERVAL_SECONDS = 5
 
 _running = False
 _task: asyncio.Task | None = None
