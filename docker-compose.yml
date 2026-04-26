@@ -1,0 +1,36 @@
+
+services:
+  # ── Mosquitto MQTT Broker ──────────────────
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: raksha-mosquitto
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_log:/mosquitto/log
+    restart: unless-stopped
+
+  # ── FastAPI Application ────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: raksha-api
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - MQTT_BROKER_HOST=mosquitto
+    depends_on:
+      - mosquitto
+    restart: unless-stopped
+    volumes:
+      - ./app:/code/app  # Hot reload in dev
+
+volumes:
+  mosquitto_data:
+  mosquitto_log:

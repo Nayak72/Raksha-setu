@@ -1,0 +1,57 @@
+[
+  {
+    "id": "833c9f0d-219a-4080-ae0a-ec6e7f7d3122",
+    "zone_id": "cc0a2353-6648-406d-a8e2-32e792bb5de0",
+    "agent_name": "triage",
+    "decision": "severity=conflict",
+    "reasoning_steps": [
+      "Step 1: Extracting detection metrics from YOLO data.",
+      "  → crowd=80.000, flood=0.000, damage=0.000, fire=True, confidence=0.000",
+      "Step 2: Computing composite severity score.",
+      "  → Composite score: 24.100",
+      "Step 3: Checking for data conflicts / anomalies.",
+      "  → CONFLICT: High composite (24.1) but low detection confidence (0)",
+      "  → CONFLICT: Fire detected but zero structural damage (sensor anomaly?)",
+      "Step 4: Making routing decision.",
+      "  → Decision: data_conflict → route to supervisor for resolution"
+    ],
+    "tools_used": [],
+    "confidence": 0.4,
+    "routing_decision": "data_conflict",
+    "metadata": {
+      "zone_id": "cc0a2353-6648-406d-a8e2-32e792bb5de0",
+      "feedback_loop_count": 0,
+      "weather_recheck_count": 0,
+      "notification_retry_count": 0,
+      "supervisor_interventions": 0
+    },
+    "timestamp": "2026-04-26T07:09:41.794142+00:00"
+  },
+  {
+    "id": "4ecf7f2f-a38c-4354-a081-247b7fa016f1",
+    "zone_id": "cc0a2353-6648-406d-a8e2-32e792bb5de0",
+    "agent_name": "supervisor",
+    "decision": "RESOLVED",
+    "reasoning_steps": [
+      "Step 1: Collecting outputs from all agents for review.",
+      "  → Agent summary compiled for 6 agents",
+      "Step 2: Detecting conflicts between agent outputs.",
+      "  → Conflicts detected: 0",
+      "Step 3: No conflicts detected — all agents aligned.",
+      "Step 4: LLM producing final supervisor decision with routing authority.",
+      "  → Final decision: No clear actionable decision from initial analysis, proceeding with cautious monitoring.",
+      "  → Routing: resolved"
+    ],
+    "tools_used": [],
+    "confidence": 0.4,
+    "routing_decision": "resolved",
+    "metadata": {
+      "zone_id": "cc0a2353-6648-406d-a8e2-32e792bb5de0",
+      "feedback_loop_count": 0,
+      "weather_recheck_count": 0,
+      "notification_retry_count": 0,
+      "supervisor_interventions": 0
+    },
+    "timestamp": "2026-04-26T07:09:41.794142+00:00"
+  }
+]

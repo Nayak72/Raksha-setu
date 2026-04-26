@@ -1,0 +1,48 @@
+﻿2026-04-26 14:03:16 [info     ] graph.started                  zone=cc0a2353-6648-406d-a8e2-32e792bb5de0
+.venv_win\Scripts\python.exe : Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN 
+to enable higher rate limits and faster downloads.
+At line:1 char:1
++ .venv_win\Scripts\python.exe run_agents_demo.py 2>&1 | Out-File -Enco ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Warning: You ar...ster downloads.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]
+Loading weights: 100%|##########| 103/103 [00:00<00:00, 6806.47it/s]
+C:\Users\ankit\Desktop\Sem_6\KLE_Hackathon\RakshaSetu\app\rag\embeddings.py:37: FutureWarning: The 
+`get_sentence_embedding_dimension` method has been renamed to `get_embedding_dimension`.
+  f"Model loaded: dim={_model_instance.get_sentence_embedding_dimension()}"
+C:\Users\ankit\Desktop\Sem_6\KLE_Hackathon\RakshaSetu\app\rag\embeddings.py:58: FutureWarning: The 
+`get_sentence_embedding_dimension` method has been renamed to `get_embedding_dimension`.
+  self._dimension = self._model.get_sentence_embedding_dimension()
+2026-04-26 14:03:23 [info     ] rag.detection_ingested         zone=cc0a2353-6648-406d-a8e2-32e792bb5de0
+Failed to initialize DB pool: could not translate host name "db.wcaggixrdosfkewalokc.supabase.co" to address: Name or 
+service not known
+
+Failed to initialize DB pool: could not translate host name "db.wcaggixrdosfkewalokc.supabase.co" to address: Name or 
+service not known
+
+   RAG weather retrieval failed: 'list' object has no attribute 'strip' in query.
+Weather history retrieval failed: 'list' object has no attribute 'strip' in query.
+Detection history retrieval failed: 'list' object has no attribute 'strip' in query.
+Failed to initialize DB pool: could not translate host name "db.wcaggixrdosfkewalokc.supabase.co" to address: Name or 
+service not known
+
+Failed to initialize DB pool: could not translate host name "db.wcaggixrdosfkewalokc.supabase.co" to address: Name or 
+service not known
+
+   LLM synthesis failed: Expecting value: line 1 column 1 (char 0)
+Failed to initialize DB pool: could not translate host name "db.wcaggixrdosfkewalokc.supabase.co" to address: Name or 
+service not known
+
+Failed to initialize DB pool: could not translate host name "db.wcaggixrdosfkewalokc.supabase.co" to address: Name or 
+service not known
+
+Failed to initialize DB pool: could not translate host name "db.wcaggixrdosfkewalokc.supabase.co" to address: Name or 
+service not known
+
+   Supervisor LLM failed: Expecting value: line 1 column 1 (char 0)
+2026-04-26 14:04:30 [info     ] graph.completed                trace_len=6 zone=cc0a2353-6648-406d-a8e2-32e792bb5de0
+2026-04-26 14:04:30 [info     ] supabase.client_created
+SUCCESS: All agents completed!
