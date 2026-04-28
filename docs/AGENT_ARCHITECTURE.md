@@ -86,7 +86,7 @@ Composite = (flood_level * 0.40) + (crowd_density * 0.30) + (structural_damage *
 
 ### C. Zone Analyst (RAG-Powered Decision Maker)
 **Role:** The core analytical brain. It fuses detection data, weather simulations, and historical disaster data (RAG memory) to make an actionable decision.
-
+    
 **Working Mechanism:**
 1.  Queries ChromaDB (Vector DB) to retrieve past events with similar weather/detection signatures.
 2.  Triggers a multi-agent **AutoGen Internal Debate** between sub-agents (Risk Assessor vs. Safety Planner).

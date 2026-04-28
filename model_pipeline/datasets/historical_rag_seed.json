@@ -1,0 +1,602 @@
+[
+  {
+    "id": "47fd7f17-c6d8-490b-b347-f09839698355",
+    "state": {
+      "flood_level": 0.21,
+      "rainfall_mm": 76.8,
+      "crowd_density": 0.27,
+      "fire_detected": false
+    },
+    "decision": "MONITOR",
+    "outcome": "SUCCESS: Threat dissipated.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.16."
+  },
+  {
+    "id": "c7f658ab-9b13-4204-85ca-9fdbd8377413",
+    "state": {
+      "flood_level": 0.21,
+      "rainfall_mm": 85.9,
+      "crowd_density": 0.25,
+      "fire_detected": false
+    },
+    "decision": "MONITOR",
+    "outcome": "SUCCESS: Threat dissipated.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.16."
+  },
+  {
+    "id": "b217eeeb-fefc-4b51-8f35-5bda7ea987aa",
+    "state": {
+      "flood_level": 0.47,
+      "rainfall_mm": 121.7,
+      "crowd_density": 0.43,
+      "fire_detected": true
+    },
+    "decision": "EVACUATE",
+    "outcome": "SUCCESS: Casualties avoided due to rapid response.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.42."
+  },
+  {
+    "id": "d8dce5c2-5484-46fc-a4ac-0d556e9829a3",
+    "state": {
+      "flood_level": 0.34,
+      "rainfall_mm": 0.0,
+      "crowd_density": 0.54,
+      "fire_detected": true
+    },
+    "decision": "EVACUATE",
+    "outcome": "SUCCESS: Casualties avoided due to rapid response.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.4."
+  },
+  {
+    "id": "b91400b7-9fce-4dfe-844d-285f8fe88639",
+    "state": {
+      "flood_level": 0.42,
+      "rainfall_mm": 192.8,
+      "crowd_density": 0.5,
+      "fire_detected": true
+    },
+    "decision": "EVACUATE",
+    "outcome": "SUCCESS: Casualties avoided due to rapid response.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.42."
+  },
+  {
+    "id": "9895364e-ae24-4a94-bd70-94483b3f2332",
+    "state": {
+      "flood_level": 0.53,
+      "rainfall_mm": 184.8,
+      "crowd_density": 0.41,
+      "fire_detected": false
+    },
+    "decision": "DEPLOY_RESOURCES",
+    "outcome": "SUCCESS: Shelters opened, supplies delivered.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.34."
+  },
+  {
+    "id": "445ff8a4-8146-4af2-9b06-12455667bec9",
+    "state": {
+      "flood_level": 0.49,
+      "rainfall_mm": 83.2,
+      "crowd_density": 0.26,
+      "fire_detected": true
+    },
+    "decision": "EVACUATE",
+    "outcome": "SUCCESS: Casualties avoided due to rapid response.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.37."
+  },
+  {
+    "id": "c42bc529-2a02-4c5f-8cfa-9ed433b77c7b",
+    "state": {
+      "flood_level": 0.94,
+      "rainfall_mm": 182.1,
+      "crowd_density": 0.98,
+      "fire_detected": true
+    },
+    "decision": "EVACUATE",
+    "outcome": "SUCCESS: Casualties avoided due to rapid response.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.77."
+  },
+  {
+    "id": "90c7ba97-655d-4683-8a45-3884b2465b1f",
+    "state": {
+      "flood_level": 0.7,
+      "rainfall_mm": 102.5,
+      "crowd_density": 0.67,
+      "fire_detected": false
+    },
+    "decision": "DEPLOY_RESOURCES",
+    "outcome": "SUCCESS: Shelters opened, supplies delivered.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.48."
+  },
+  {
+    "id": "8aee2146-35ae-4a1f-8078-10a6596941a2",
+    "state": {
+      "flood_level": 0.87,
+      "rainfall_mm": 139.7,
+      "crowd_density": 0.75,
+      "fire_detected": true
+    },
+    "decision": "EVACUATE",
+    "outcome": "SUCCESS: Casualties avoided due to rapid response.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.68."
+  },
+  {
+    "id": "d17ba103-a93b-4a66-b54d-aa4c14022ca2",
+    "state": {
+      "flood_level": 0.43,
+      "rainfall_mm": 95.1,
+      "crowd_density": 0.0,
+      "fire_detected": true
+    },
+    "decision": "EVACUATE",
+    "outcome": "SUCCESS: Casualties avoided due to rapid response.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.27."
+  },
+  {
+    "id": "376a1243-77cf-476f-830e-c69fae066093",
+    "state": {
+      "flood_level": 0.69,
+      "rainfall_mm": 52.5,
+      "crowd_density": 0.11,
+      "fire_detected": false
+    },
+    "decision": "DEPLOY_RESOURCES",
+    "outcome": "SUCCESS: Shelters opened, supplies delivered.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.31."
+  },
+  {
+    "id": "c9ce2648-4788-4079-9b60-36e3b200e2a5",
+    "state": {
+      "flood_level": 0.87,
+      "rainfall_mm": 139.1,
+      "crowd_density": 0.96,
+      "fire_detected": false
+    },
+    "decision": "EVACUATE",
+    "outcome": "SUCCESS: Casualties avoided due to rapid response.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.64."
+  },
+  {
+    "id": "cca02d3a-e20d-46ec-833b-42724132a0a1",
+    "state": {
+      "flood_level": 0.36,
+      "rainfall_mm": 141.7,
+      "crowd_density": 0.7,
+      "fire_detected": false
+    },
+    "decision": "DEPLOY_RESOURCES",
+    "outcome": "SUCCESS: Shelters opened, supplies delivered.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.35."
+  },
+  {
+    "id": "3627d163-a08a-444e-bc1d-ff718ec1c953",
+    "state": {
+      "flood_level": 0.22,
+      "rainfall_mm": 67.0,
+      "crowd_density": 0.55,
+      "fire_detected": false
+    },
+    "decision": "MONITOR",
+    "outcome": "SUCCESS: Threat dissipated.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.25."
+  },
+  {
+    "id": "43742f19-f876-4dfa-b6d1-5dab2aca2d04",
+    "state": {
+      "flood_level": 0.85,
+      "rainfall_mm": 184.1,
+      "crowd_density": 0.21,
+      "fire_detected": false
+    },
+    "decision": "DEPLOY_RESOURCES",
+    "outcome": "SUCCESS: Shelters opened, supplies delivered.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.41."
+  },
+  {
+    "id": "5c82c3ff-3456-42e9-bdd7-584b917c9ac9",
+    "state": {
+      "flood_level": 0.73,
+      "rainfall_mm": 18.7,
+      "crowd_density": 0.77,
+      "fire_detected": false
+    },
+    "decision": "DEPLOY_RESOURCES",
+    "outcome": "SUCCESS: Shelters opened, supplies delivered.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.52."
+  },
+  {
+    "id": "23cd71ab-a61d-4b8e-a716-68a8efe8cbd9",
+    "state": {
+      "flood_level": 0.17,
+      "rainfall_mm": 173.2,
+      "crowd_density": 0.05,
+      "fire_detected": true
+    },
+    "decision": "EVACUATE",
+    "outcome": "SUCCESS: Casualties avoided due to rapid response.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.18."
+  },
+  {
+    "id": "0025515a-b90e-4a4f-8ead-63058db4cc46",
+    "state": {
+      "flood_level": 0.01,
+      "rainfall_mm": 129.8,
+      "crowd_density": 0.67,
+      "fire_detected": true
+    },
+    "decision": "EVACUATE",
+    "outcome": "SUCCESS: Casualties avoided due to rapid response.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.31."
+  },
+  {
+    "id": "357d4049-1558-4559-8098-c2e1692ba401",
+    "state": {
+      "flood_level": 0.76,
+      "rainfall_mm": 119.4,
+      "crowd_density": 0.18,
+      "fire_detected": false
+    },
+    "decision": "DEPLOY_RESOURCES",
+    "outcome": "SUCCESS: Shelters opened, supplies delivered.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.36."
+  },
+  {
+    "id": "00094737-99ac-4a30-944d-c17d62ddfdcf",
+    "state": {
+      "flood_level": 0.14,
+      "rainfall_mm": 151.5,
+      "crowd_density": 0.91,
+      "fire_detected": false
+    },
+    "decision": "DEPLOY_RESOURCES",
+    "outcome": "SUCCESS: Shelters opened, supplies delivered.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.33."
+  },
+  {
+    "id": "1fd600f0-9247-4984-8b0a-354eb36c4141",
+    "state": {
+      "flood_level": 0.61,
+      "rainfall_mm": 41.3,
+      "crowd_density": 0.65,
+      "fire_detected": true
+    },
+    "decision": "EVACUATE",
+    "outcome": "SUCCESS: Casualties avoided due to rapid response.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.54."
+  },
+  {
+    "id": "2f8d9111-2adf-4a08-85e4-4ccf4e198589",
+    "state": {
+      "flood_level": 0.69,
+      "rainfall_mm": 105.7,
+      "crowd_density": 0.9,
+      "fire_detected": false
+    },
+    "decision": "DEPLOY_RESOURCES",
+    "outcome": "SUCCESS: Shelters opened, supplies delivered.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.55."
+  },
+  {
+    "id": "dd42136b-000b-4b9a-8323-963c955e8046",
+    "state": {
+      "flood_level": 0.27,
+      "rainfall_mm": 196.3,
+      "crowd_density": 0.01,
+      "fire_detected": false
+    },
+    "decision": "MONITOR",
+    "outcome": "SUCCESS: Threat dissipated.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.11."
+  },
+  {
+    "id": "059e3ecc-3ef9-4344-9905-ec61ade802ac",
+    "state": {
+      "flood_level": 0.32,
+      "rainfall_mm": 162.4,
+      "crowd_density": 0.58,
+      "fire_detected": false
+    },
+    "decision": "DEPLOY_RESOURCES",
+    "outcome": "SUCCESS: Shelters opened, supplies delivered.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.3."
+  },
+  {
+    "id": "a1728e8e-caa5-448e-a071-1120ae65644d",
+    "state": {
+      "flood_level": 0.4,
+      "rainfall_mm": 97.3,
+      "crowd_density": 0.29,
+      "fire_detected": false
+    },
+    "decision": "MONITOR",
+    "outcome": "SUCCESS: Threat dissipated.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.25."
+  },
+  {
+    "id": "78cef982-f62c-4f23-85bc-694b921c3e56",
+    "state": {
+      "flood_level": 0.83,
+      "rainfall_mm": 59.0,
+      "crowd_density": 0.91,
+      "fire_detected": false
+    },
+    "decision": "EVACUATE",
+    "outcome": "SUCCESS: Casualties avoided due to rapid response.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.61."
+  },
+  {
+    "id": "f3d5bceb-4a1f-4d5c-a654-ab720a278059",
+    "state": {
+      "flood_level": 0.44,
+      "rainfall_mm": 154.5,
+      "crowd_density": 0.78,
+      "fire_detected": true
+    },
+    "decision": "EVACUATE",
+    "outcome": "SUCCESS: Casualties avoided due to rapid response.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.51."
+  },
+  {
+    "id": "dd285dfe-903a-43d3-862d-c4a709461bf4",
+    "state": {
+      "flood_level": 0.25,
+      "rainfall_mm": 64.0,
+      "crowd_density": 0.03,
+      "fire_detected": true
+    },
+    "decision": "EVACUATE",
+    "outcome": "SUCCESS: Casualties avoided due to rapid response.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.21."
+  },
+  {
+    "id": "e7b0c01b-6936-45b1-ad6f-1e5c39343e3b",
+    "state": {
+      "flood_level": 0.45,
+      "rainfall_mm": 155.2,
+      "crowd_density": 0.85,
+      "fire_detected": true
+    },
+    "decision": "EVACUATE",
+    "outcome": "SUCCESS: Casualties avoided due to rapid response.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.53."
+  },
+  {
+    "id": "1bf8bd3c-90c4-41de-9ed4-8f3313de8d80",
+    "state": {
+      "flood_level": 0.99,
+      "rainfall_mm": 109.8,
+      "crowd_density": 0.47,
+      "fire_detected": false
+    },
+    "decision": "DEPLOY_RESOURCES",
+    "outcome": "SUCCESS: Shelters opened, supplies delivered.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.54."
+  },
+  {
+    "id": "3c0cbae9-9bab-4eea-bd0a-46c5511c10c8",
+    "state": {
+      "flood_level": 0.15,
+      "rainfall_mm": 144.3,
+      "crowd_density": 0.8,
+      "fire_detected": true
+    },
+    "decision": "EVACUATE",
+    "outcome": "SUCCESS: Casualties avoided due to rapid response.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.4."
+  },
+  {
+    "id": "549e99b7-7f38-4bdc-b2cc-601837d753fb",
+    "state": {
+      "flood_level": 0.6,
+      "rainfall_mm": 68.1,
+      "crowd_density": 0.29,
+      "fire_detected": true
+    },
+    "decision": "EVACUATE",
+    "outcome": "SUCCESS: Casualties avoided due to rapid response.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.43."
+  },
+  {
+    "id": "bfa67f92-7b44-40e9-9937-b56e0711aa7d",
+    "state": {
+      "flood_level": 0.96,
+      "rainfall_mm": 154.7,
+      "crowd_density": 0.94,
+      "fire_detected": false
+    },
+    "decision": "EVACUATE",
+    "outcome": "SUCCESS: Casualties avoided due to rapid response.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.66."
+  },
+  {
+    "id": "9194d9fc-f2cb-40b4-b7b8-8e2c3287e1c9",
+    "state": {
+      "flood_level": 0.59,
+      "rainfall_mm": 131.8,
+      "crowd_density": 0.58,
+      "fire_detected": false
+    },
+    "decision": "DEPLOY_RESOURCES",
+    "outcome": "SUCCESS: Shelters opened, supplies delivered.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.41."
+  },
+  {
+    "id": "8b87a9c4-2cb1-4581-a577-976e5109bbf6",
+    "state": {
+      "flood_level": 0.26,
+      "rainfall_mm": 147.3,
+      "crowd_density": 0.23,
+      "fire_detected": true
+    },
+    "decision": "EVACUATE",
+    "outcome": "SUCCESS: Casualties avoided due to rapid response.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.27."
+  },
+  {
+    "id": "acdf41de-7db1-4cb8-b777-53c7d8a9680c",
+    "state": {
+      "flood_level": 0.52,
+      "rainfall_mm": 50.4,
+      "crowd_density": 0.55,
+      "fire_detected": true
+    },
+    "decision": "EVACUATE",
+    "outcome": "SUCCESS: Casualties avoided due to rapid response.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.47."
+  },
+  {
+    "id": "4e5cf25b-64dc-4a49-8592-09741434e5a0",
+    "state": {
+      "flood_level": 0.25,
+      "rainfall_mm": 174.6,
+      "crowd_density": 0.94,
+      "fire_detected": true
+    },
+    "decision": "EVACUATE",
+    "outcome": "SUCCESS: Casualties avoided due to rapid response.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.48."
+  },
+  {
+    "id": "7c3eaa34-fd7a-4495-a130-fa4248113e0d",
+    "state": {
+      "flood_level": 0.06,
+      "rainfall_mm": 99.2,
+      "crowd_density": 0.51,
+      "fire_detected": false
+    },
+    "decision": "MONITOR",
+    "outcome": "SUCCESS: Threat dissipated.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.18."
+  },
+  {
+    "id": "28927005-6a1e-43b1-b722-1eae69a38fba",
+    "state": {
+      "flood_level": 0.92,
+      "rainfall_mm": 199.7,
+      "crowd_density": 0.16,
+      "fire_detected": false
+    },
+    "decision": "DEPLOY_RESOURCES",
+    "outcome": "SUCCESS: Shelters opened, supplies delivered.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.41."
+  },
+  {
+    "id": "a4007f5d-8863-40b7-9999-593b00564f72",
+    "state": {
+      "flood_level": 0.85,
+      "rainfall_mm": 181.2,
+      "crowd_density": 0.46,
+      "fire_detected": true
+    },
+    "decision": "EVACUATE",
+    "outcome": "SUCCESS: Casualties avoided due to rapid response.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.58."
+  },
+  {
+    "id": "bb8247cd-2632-4e53-b640-0f4538db1a73",
+    "state": {
+      "flood_level": 0.42,
+      "rainfall_mm": 13.3,
+      "crowd_density": 0.03,
+      "fire_detected": false
+    },
+    "decision": "MONITOR",
+    "outcome": "SUCCESS: Threat dissipated.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.18."
+  },
+  {
+    "id": "f36ecfd8-1ec1-40bc-a06c-977c29d5494d",
+    "state": {
+      "flood_level": 0.4,
+      "rainfall_mm": 118.8,
+      "crowd_density": 0.84,
+      "fire_detected": true
+    },
+    "decision": "EVACUATE",
+    "outcome": "SUCCESS: Casualties avoided due to rapid response.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.51."
+  },
+  {
+    "id": "fdae0be7-d583-4402-81c1-6c0238088864",
+    "state": {
+      "flood_level": 0.08,
+      "rainfall_mm": 107.7,
+      "crowd_density": 0.68,
+      "fire_detected": true
+    },
+    "decision": "EVACUATE",
+    "outcome": "SUCCESS: Casualties avoided due to rapid response.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.34."
+  },
+  {
+    "id": "d7d8becc-1d24-4a2e-951b-a174eee34797",
+    "state": {
+      "flood_level": 0.5,
+      "rainfall_mm": 64.5,
+      "crowd_density": 0.89,
+      "fire_detected": true
+    },
+    "decision": "EVACUATE",
+    "outcome": "SUCCESS: Casualties avoided due to rapid response.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.57."
+  },
+  {
+    "id": "af9c5ffb-bf7e-4218-b57f-cc487284bff4",
+    "state": {
+      "flood_level": 0.6,
+      "rainfall_mm": 123.8,
+      "crowd_density": 0.48,
+      "fire_detected": true
+    },
+    "decision": "EVACUATE",
+    "outcome": "SUCCESS: Casualties avoided due to rapid response.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.48."
+  },
+  {
+    "id": "1ef4f4e6-5ee2-4604-8c14-8edf6ba44004",
+    "state": {
+      "flood_level": 0.42,
+      "rainfall_mm": 196.5,
+      "crowd_density": 0.98,
+      "fire_detected": false
+    },
+    "decision": "DEPLOY_RESOURCES",
+    "outcome": "SUCCESS: Shelters opened, supplies delivered.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.46."
+  },
+  {
+    "id": "ef102b9f-243d-450a-ad4f-6a627fb0e88f",
+    "state": {
+      "flood_level": 0.49,
+      "rainfall_mm": 82.3,
+      "crowd_density": 0.45,
+      "fire_detected": false
+    },
+    "decision": "DEPLOY_RESOURCES",
+    "outcome": "SUCCESS: Shelters opened, supplies delivered.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.33."
+  },
+  {
+    "id": "a3eaa030-c4ed-449d-ae92-116e7a060074",
+    "state": {
+      "flood_level": 0.84,
+      "rainfall_mm": 27.4,
+      "crowd_density": 0.2,
+      "fire_detected": false
+    },
+    "decision": "DEPLOY_RESOURCES",
+    "outcome": "SUCCESS: Shelters opened, supplies delivered.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.4."
+  },
+  {
+    "id": "a900a9d8-bfcb-4a8b-9e5e-51b87c9ec9d7",
+    "state": {
+      "flood_level": 0.08,
+      "rainfall_mm": 73.3,
+      "crowd_density": 0.05,
+      "fire_detected": false
+    },
+    "decision": "MONITOR",
+    "outcome": "SUCCESS: Threat dissipated.",
+    "reasoning": "Based on historical threshold analysis where composite risk was 0.05."
+  }
+]

@@ -141,6 +141,11 @@ Invoke-RestMethod -Uri http://localhost:8001/api/v1/detect `
 *Note: Replace `YOUR_ZONE_UUID` with a valid zone ID from your Supabase database.*
 
 Once triggered, watch the **Agent Logs** panel on the frontend UI to see the Triage, Analyst, and Supervisor agents dynamically resolve the emergency!
-=======
-# Building_Testing
->>>>>>> 87125f6ee0406e7139cf074a0e30e8e982502960
+
+### Automated Simulation Mode
+
+You can run continuous, stochastic simulations of disaster scenarios (Flood, Fire, Calm) that generate realistic data patterns:
+```powershell
+python scripts/simulation/automated_simulation.py
+```
+This script relies on the `synthetic_generator.py` mathematically modeling disaster evolutions and submitting them to the backend API.

@@ -3,7 +3,8 @@ import psycopg2
 from urllib.parse import quote_plus
 from dotenv import load_dotenv
 
-load_dotenv()
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+load_dotenv(os.path.join(project_root, ".env"))
 
 host = "aws-0-ap-northeast-1.pooler.supabase.com"
 port = "6543"
@@ -24,9 +25,9 @@ try:
     cursor = conn.cursor()
     print("Connected successfully!")
     
-    with open("migrations/001_initial.sql", "r", encoding="utf-8") as f:
+    with open(os.path.join(project_root, "migrations/001_initial.sql"), "r", encoding="utf-8") as f:
         m1 = f.read()
-    with open("migrations/002_agent_logs.sql", "r", encoding="utf-8") as f:
+    with open(os.path.join(project_root, "migrations/002_agent_logs.sql"), "r", encoding="utf-8") as f:
         m2 = f.read()
         
     print("Executing 001_initial.sql...")

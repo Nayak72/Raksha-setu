@@ -1,0 +1,16 @@
+path: ../datasets/rakshasetu_unified
+train: images/train
+val: images/val
+test: images/test
+
+# Number of classes
+nc: 6
+
+# Class names
+names:
+  0: person
+  1: vehicle
+  2: flooded_area
+  3: fire_smoke
+  4: damaged_struct
+  5: safe_struct

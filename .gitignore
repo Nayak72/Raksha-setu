@@ -59,6 +59,6 @@ Thumbs.db
 
 # Project logs and data
 data/
-agent_demo_output.txt
-agent_logs_out.json
-api_logs.json
+logs/agent_demo_output.txt
+logs/agent_logs_out.json
+logs/api_logs.json
