@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🛡️ RakshaSetu: AI-Driven Disaster Response System
 
 RakshaSetu is an advanced, real-time disaster management and emergency response platform. It leverages a state-of-the-art event-driven architecture, combining a multi-agent AI workflow (LangGraph + Local LLMs), real-time database triggers (Supabase), and live MQTT broadcasting to orchestrate complex disaster response scenarios.
@@ -140,3 +141,6 @@ Invoke-RestMethod -Uri http://localhost:8001/api/v1/detect `
 *Note: Replace `YOUR_ZONE_UUID` with a valid zone ID from your Supabase database.*
 
 Once triggered, watch the **Agent Logs** panel on the frontend UI to see the Triage, Analyst, and Supervisor agents dynamically resolve the emergency!
+=======
+# Building_Testing
+>>>>>>> 87125f6ee0406e7139cf074a0e30e8e982502960
