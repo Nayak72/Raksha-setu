@@ -1,0 +1,26 @@
+# Handle line endings automatically for files detected as text
+# and leave binary files untouched.
+* text=auto
+
+# Explicitly declare text files you want to always be normalized 
+# and converted to native line endings on checkout.
+*.py text
+*.js text
+*.ts text
+*.tsx text
+*.css text
+*.html text
+*.md text
+*.json text
+*.yaml text
+*.yml text
+.gitignore text
+.env* text
+
+# Explicitly declare binary files (don't try to normalize these)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary

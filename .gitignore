@@ -56,3 +56,9 @@ vector_db/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Project logs and data
+data/
+agent_demo_output.txt
+agent_logs_out.json
+api_logs.json
