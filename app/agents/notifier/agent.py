@@ -13,7 +13,7 @@ Routing decisions:
   delivery_failed → supervisor (complete failure)
 """
 
-import json
+
 import logging
 import requests
 from langchain_core.messages import HumanMessage, SystemMessage
@@ -130,7 +130,7 @@ Determine the notification strategy. Respond with JSON:
 
         publish_success = True
         try:
-            resp = requests.post("http://localhost:8001/broadcast-alert", json=alert_payload, timeout=5.0)
+            resp = requests.post("http://localhost:8000/api/v1/broadcast-alert", json=alert_payload, timeout=5.0)
             if resp.status_code in (200, 201):
                 reasoning_steps.append(f"  → Broadcasted successfully")
             else:

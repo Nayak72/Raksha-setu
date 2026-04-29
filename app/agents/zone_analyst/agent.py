@@ -151,6 +151,7 @@ def zone_analyst_node(state: AgentState) -> dict:
         "zone_id": zone_id,
         "detection_data": detection_data,
         "weather_data": weather_data,
+        "weather_trend": weather_trend,
         "zone_history_summary": zone_history[:3] if isinstance(zone_history, list) and zone_history else [],
         "rag_context": retrieved_context[:5],
         "rag_summary": rag_context.get("summary", ""),

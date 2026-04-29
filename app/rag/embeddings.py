@@ -9,7 +9,7 @@ The embedding model is configured via the EMBEDDING_MODEL env variable
 
 import logging
 import threading
-from typing import Union
+
 
 import numpy as np
 from sentence_transformers import SentenceTransformer

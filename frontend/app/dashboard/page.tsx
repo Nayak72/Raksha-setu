@@ -1,14 +1,16 @@
 /**
- * Dashboard Page — overview cards + criticality zones + map + alert feed + agent logs + broadcast.
+ * Dashboard Page — overview cards + criticality zones + map + agent logs + broadcast.
  * Enhanced with simulation data (zone severity, evacuation stats).
+ * Alert Feed removed per CHANGE 3.
  */
 'use client';
 
+import { useState, useEffect } from 'react';
 import AppShell, { useRealtimeData } from '../AppShell';
 import { useSimulation } from '../../hooks/useSimulation';
+import { fetchSheltersNear, SimShelter } from '../../lib/simulation-api';
 import LoadingPanel from '../../components/ui/LoadingPanel';
 import MetricCards from '../../components/ui/MetricCards';
-import AlertFeed from '../../components/logs/AlertFeed';
 import dynamic from 'next/dynamic';
 import { Wifi, WifiOff } from 'lucide-react';
 
@@ -38,6 +40,29 @@ function DashboardContent() {
   const critCount = sim.zones.filter((z) => z.severity === 'critical').length;
   const highCount = sim.zones.filter((z) => z.severity === 'high').length;
   const totalEvac = sim.evacuations.reduce((s, e) => s + e.evacuated_count, 0);
+
+  // Fetch sim shelters for mapping lines
+  const [simSheltersMap, setSimSheltersMap] = useState<Record<string, SimShelter[]>>({});
+  
+  useEffect(() => {
+    if (sim.zones.length === 0) return;
+    const fetchAllShelters = async () => {
+      const map: Record<string, SimShelter[]> = {};
+      for (const zone of sim.zones) {
+        try {
+          const res = await fetchSheltersNear(zone.id);
+          map[zone.id] = res;
+        } catch (e) {
+          // ignore
+        }
+      }
+      setSimSheltersMap(map);
+    };
+    fetchAllShelters();
+  }, [sim.zones]);
+
+  const allSimShelters = Object.values(simSheltersMap).flat();
+  const simConnections = Object.entries(simSheltersMap).map(([zone_id, shelters]) => ({ zone_id, shelters }));
 
   return (
     <div className="space-y-5 animate-fade-in" id="dashboard-page">
@@ -87,18 +112,16 @@ function DashboardContent() {
       {/* Zone Criticality Cards */}
       {sim.zones.length > 0 && <ZoneCriticalityCards zones={sim.zones} />}
 
-      {/* Row 1: Map + Alert Feed */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <div className="lg:col-span-2 glass-panel p-1 h-[480px]">
-          <LiveMap
-            zones={zones.zones}
-            shelters={shelters.shelters}
-            volunteerCount={volunteers.volunteers.length}
-          />
-        </div>
-        <div className="glass-panel p-4 h-[480px]">
-          <AlertFeed alerts={alerts.alerts} />
-        </div>
+      {/* Full-width Map */}
+      <div className="glass-panel p-1 h-[480px]">
+        <LiveMap
+          zones={zones.zones}
+          shelters={shelters.shelters}
+          volunteerCount={volunteers.volunteers.length}
+          simZones={sim.zones}
+          simShelters={allSimShelters}
+          simConnections={simConnections}
+        />
       </div>
 
       {/* Row 2: Agent Logs + Broadcast */}

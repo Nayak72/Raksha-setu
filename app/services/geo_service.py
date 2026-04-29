@@ -6,7 +6,7 @@ Uses asyncpg for direct PostGIS queries and Shapely for in-memory geometry.
 
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Any
 from uuid import UUID
 
 import structlog

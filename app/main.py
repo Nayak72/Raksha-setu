@@ -20,6 +20,7 @@ from app.config import get_settings
 from app.api.routes import router as api_router
 
 from app.services.simulation import engine
+from app.db.listener import start_pg_listener, stop_pg_listener
 
 logger = structlog.get_logger(__name__)
 settings = get_settings()
@@ -32,12 +33,17 @@ async def lifespan(app: FastAPI):
     # Start the simulation loop
     engine.start()
     logger.info("simulation.auto_started")
+    
+    # Start the Postgres listener for event-driven workflow
+    asyncio.create_task(start_pg_listener())
+    logger.info("pg_listener.auto_started")
 
     yield  # ← application is running
 
     # Shutdown
     logger.info("raksha.shutdown")
     await engine.stop()
+    await stop_pg_listener()
 
 
 # ─────────────────────────────────────────────

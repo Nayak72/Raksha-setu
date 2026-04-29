@@ -1,19 +1,17 @@
 /**
  * App Shell — Client component that wraps all dashboard pages with
- * sidebar + header + emergency alert overlay + data providers.
- * This is the equivalent of the old App.tsx.
+ * sidebar + header + data providers.
+ * Emergency alert overlay removed per CHANGE 3 (alert system removal).
  */
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import Sidebar from '../components/ui/Sidebar';
 import Header from '../components/ui/Header';
-import EmergencyAlert from '../components/ui/EmergencyAlert';
 import {
   useZones, useAlerts, useVolunteers, useShelters,
   useDetections, useAcknowledgments, useSystemStatus, useAgentLogs,
 } from '../hooks/useSupabaseRealtime';
-import { Alert } from '../lib/supabase';
 
 /**
  * React Context to share realtime data across all pages
@@ -42,7 +40,6 @@ export function useRealtimeData() {
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [emergencyAlert, setEmergencyAlert] = useState<Alert | null>(null);
 
   const zonesData = useZones();
   const alertsData = useAlerts();
@@ -53,12 +50,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const agentLogsData = useAgentLogs();
   const systemStatusData = useSystemStatus();
 
-  useEffect(() => {
-    if (alertsData.latestAlert && (alertsData.latestAlert.severity === 'critical' || alertsData.latestAlert.severity === 'high')) {
-      setEmergencyAlert(alertsData.latestAlert);
-    }
-  }, [alertsData.latestAlert]);
-
   const handleRefresh = useCallback(() => {
     zonesData.refetch();
     alertsData.refetch();
@@ -66,14 +57,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     sheltersData.refetch();
     systemStatusData.refetch();
   }, [zonesData, alertsData, volunteersData, sheltersData, systemStatusData]);
-
-  const handleDismissEmergency = useCallback(() => {
-    setEmergencyAlert(null);
-  }, []);
-
-  const recentAlertCount = alertsData.alerts.filter(
-    (a) => new Date(a.timestamp) > new Date(Date.now() - 3600000)
-  ).length;
 
   const realtimeValue: RealtimeData = {
     zones: zonesData,
@@ -92,19 +75,18 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <Sidebar
           collapsed={sidebarCollapsed}
           onToggle={() => setSidebarCollapsed((p) => !p)}
-          alertCount={recentAlertCount}
+          alertCount={0}
         />
         <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
           <Header
             systemStatus={systemStatusData.status}
             statusLoading={systemStatusData.loading}
             statusError={systemStatusData.error}
-            alertCount={recentAlertCount}
+            alertCount={0}
             onRefresh={handleRefresh}
           />
           <main className="flex-1 p-5 overflow-y-auto">{children}</main>
         </div>
-        <EmergencyAlert alert={emergencyAlert} onDismiss={handleDismissEmergency} />
       </div>
     </RealtimeContext.Provider>
   );

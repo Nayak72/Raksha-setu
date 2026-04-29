@@ -8,17 +8,22 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 // ── Types ──────────────────────────────────────
 export type SimZone = {
   id: string;
+  name: string;
   lat: number;
   lng: number;
   population: number;
+  affected_population: number;
   damage_level: number;
   alert_count: number;
   severity: 'critical' | 'high' | 'medium' | 'low';
+  disaster_type: 'flood' | 'cyclone' | 'landslide' | 'storm';
 };
 
 export type SimShelter = {
   shelter_id: string;
   name: string;
+  lat: number;
+  lng: number;
   distance: number;
   capacity: number;
   available_capacity: number;
@@ -48,20 +53,22 @@ export type SimRouteResult = {
   shortest_route_index: number;
 };
 
-export type AgentDecision = {
-  priority_level: string;
-  evacuation_urgency: string;
-  resource_allocation: string;
-  routing_request: string;
+export type ThresholdCheck = {
+  parameter: string;
+  value: number;
+  threshold: number;
+  exceeded: boolean;
 };
 
 export type SimLog = {
   timestamp: string;
+  agent_name: string;
   zone_id: string;
-  inputs: Record<string, number>;
-  parameters: Record<string, number>;
-  thresholds: Record<string, number>;
-  decision: AgentDecision;
+  input_data: Record<string, any>;
+  parameters_used: Record<string, any>;
+  thresholds_checked: ThresholdCheck[];
+  decision: string;
+  outcome: string;
   reasoning: string;
 };
 

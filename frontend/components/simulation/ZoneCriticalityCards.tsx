@@ -72,16 +72,24 @@ function ZoneCriticalityCards({ zones }: { zones: SimZone[] }) {
               <Icon size={16} className={cfg.text} />
             </div>
 
-            {/* Zone ID (short) */}
-            <p className="text-[10px] text-surface-500 font-mono mb-2 truncate">
-              {zone.id.slice(0, 8)}...
+            {/* Zone Name */}
+            <p className="text-[11px] text-surface-200 font-medium mb-1 truncate" title={zone.name}>
+              {zone.name}
             </p>
+            <div className="flex items-center gap-1.5 mb-2 text-xs">
+              <span className="text-[10px] uppercase font-bold text-surface-400 bg-surface-800 px-1.5 py-0.5 rounded">
+                {zone.disaster_type}
+              </span>
+              <span className="text-[10px] text-surface-500 font-mono truncate">
+                ID: {zone.id.slice(0, 6)}
+              </span>
+            </div>
 
             {/* Metrics grid */}
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <p className="text-[9px] text-surface-500 uppercase tracking-wider">Population</p>
-                <p className="text-sm font-bold text-white">{zone.population.toLocaleString()}</p>
+                <p className="text-[9px] text-surface-500 uppercase tracking-wider">Affected</p>
+                <p className="text-sm font-bold text-white">{zone.affected_population.toLocaleString()}</p>
               </div>
               <div>
                 <p className="text-[9px] text-surface-500 uppercase tracking-wider">Damage</p>

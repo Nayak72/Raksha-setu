@@ -46,6 +46,16 @@ async def get_pg_pool() -> asyncpg.Pool:
     if _pg_pool is None:
         # Convert the SQLAlchemy-style URL to a plain DSN
         dsn = settings.supabase.connection_string.replace("postgresql+asyncpg://", "postgresql://")
+        
+        # Resolve hostname to IPv4 to prevent asyncpg "could not translate host name"
+        import socket
+        host = settings.supabase.db_host
+        try:
+            resolved_ip = socket.gethostbyname(host)
+            dsn = dsn.replace(f"@{host}:", f"@{resolved_ip}:")
+        except Exception:
+            pass
+            
         _pg_pool = await asyncpg.create_pool(
             dsn=dsn,
             min_size=2,

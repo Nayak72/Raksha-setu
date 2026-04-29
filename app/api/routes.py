@@ -1,5 +1,5 @@
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from typing import List, Optional
+from typing import Optional
 import asyncio
 import logging
 

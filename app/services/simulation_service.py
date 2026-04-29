@@ -13,7 +13,7 @@ from __future__ import annotations
 import asyncio
 import random
 import uuid
-from datetime import datetime, timezone
+
 
 import structlog
 
@@ -70,7 +70,7 @@ async def _simulation_tick() -> None:
 
     # 3. Persist detection to Supabase
     try:
-        record = await db.insert_detection(
+        await db.insert_detection(
             zone_id=uuid.UUID(zone_id),
             count=crowd,
             metadata=metadata,

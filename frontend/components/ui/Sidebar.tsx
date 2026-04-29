@@ -10,7 +10,6 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
   Map,
-  Bell,
   Brain,
   Radio,
   Wifi,
@@ -32,7 +31,6 @@ export type NavPage =
   | 'analytics'
   | 'live-map'
   | 'live-yolo'
-  | 'alerts'
   | 'agent-logs'
   | 'broadcast'
   | 'network'
@@ -57,7 +55,6 @@ const navItems: { id: NavPage; href: string; label: string; icon: React.ElementT
   { id: 'allocation', href: '/allocation', label: 'Resources', icon: Package, group: 'Operations' },
   { id: 'routing', href: '/routing', label: 'Routing', icon: Route, group: 'Operations' },
   { id: 'live-yolo', href: '/live-yolo', label: 'Live YOLO', icon: Camera, group: 'Monitoring' },
-  { id: 'alerts', href: '/alerts', label: 'Alerts', icon: Bell, group: 'Monitoring' },
   { id: 'agent-logs', href: '/agent-logs', label: 'Agent Logs', icon: Brain, group: 'Monitoring' },
   { id: 'broadcast', href: '/broadcast', label: 'Broadcast', icon: Radio, group: 'Monitoring' },
   { id: 'network', href: '/network', label: 'Network Monitor', icon: Wifi, group: 'System' },
@@ -123,11 +120,6 @@ export default function Sidebar({ collapsed, onToggle, alertCount }: SidebarProp
               >
                 <div className="relative">
                   <Icon size={18} />
-                  {item.id === 'alerts' && alertCount > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-danger-500 text-[8px] font-bold text-white flex items-center justify-center animate-pulse">
-                      {alertCount > 9 ? '9+' : alertCount}
-                    </span>
-                  )}
                 </div>
                 {!collapsed && (
                   <span className="text-sm font-medium whitespace-nowrap">{item.label}</span>

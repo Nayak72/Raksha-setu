@@ -19,10 +19,16 @@ def init_pool():
     global _connection_pool
     if _connection_pool is None:
         try:
+            import socket
+            db_host = settings.supabase.db_host
+            try:
+                db_host = socket.gethostbyname(db_host)
+            except Exception:
+                pass
             _connection_pool = pool.ThreadedConnectionPool(
                 minconn=2,
                 maxconn=10,
-                host=settings.supabase.db_host,
+                host=db_host,
                 port=settings.supabase.db_port,
                 dbname=settings.supabase.db_name,
                 user=settings.supabase.db_user,

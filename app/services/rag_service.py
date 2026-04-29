@@ -16,7 +16,7 @@ import asyncio
 from functools import partial
 from typing import Any, Optional
 
-import numpy as np
+
 import structlog
 
 from app.config import get_settings

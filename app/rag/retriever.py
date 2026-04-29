@@ -7,7 +7,7 @@ This module provides the high-level retrieval interface that agents use
 to get enriched context before making decisions.
 """
 
-import json
+
 import logging
 from typing import Optional
 

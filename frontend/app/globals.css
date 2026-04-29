@@ -85,7 +85,6 @@
 
 /* Leaflet map overrides */
 .leaflet-container { background: #0f172a !important; border-radius: 1rem; }
-.leaflet-tile-pane { filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7); }
 .leaflet-control-zoom { border: none !important; }
 .leaflet-control-zoom a { background: #1e293b !important; color: #f8fafc !important; border: 1px solid #334155 !important; }
 .leaflet-popup-content-wrapper { background: #1e293b !important; color: #f8fafc !important; border: 1px solid #334155 !important; border-radius: 12px !important; }

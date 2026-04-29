@@ -1,7 +1,7 @@
 /**
  * Agent Logs Page — dual-tab view:
- *   Tab 1: Original Supabase agent logs (existing feature preserved)
- *   Tab 2: Advanced simulation agent decision logs with structured reasoning
+ *   Tab 1: Simulation agent decision logs (6 named agents, structured)
+ *   Tab 2: Original Supabase LLM agent logs (preserved)
  */
 'use client';
 
@@ -23,7 +23,7 @@ const AgentLogsAdvanced = dynamic(
 );
 
 function AgentLogsContent() {
-  const { agentLogs, alerts, detections } = useRealtimeData();
+  const { agentLogs, detections } = useRealtimeData();
   const sim = useSimulation();
   const [activeTab, setActiveTab] = useState<'simulation' | 'supabase'>('simulation');
 
@@ -87,7 +87,7 @@ function AgentLogsContent() {
         <div className="glass-panel p-5 h-[calc(100vh-14rem)]">
           <AgentLogsPanel
             agentLogs={agentLogs.logs}
-            alerts={alerts.alerts}
+            alerts={[]}
             detections={detections.detections}
           />
         </div>
