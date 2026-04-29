@@ -1,0 +1,85 @@
+import type { Config } from 'tailwindcss';
+
+const config: Config = {
+  content: [
+    "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./lib/**/*.{js,ts,jsx,tsx,mdx}",
+    "./hooks/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        'raksha': {
+          50: '#f0f4ff', 100: '#dfe8ff', 200: '#b9cfff', 300: '#7babff',
+          400: '#3d84ff', 500: '#1a65ff', 600: '#0047e1', 700: '#0038b5',
+          800: '#003095', 900: '#002a7a', 950: '#001a52',
+        },
+        'danger': {
+          50: '#fff1f1', 100: '#ffe0e0', 200: '#ffc7c7', 300: '#ff9e9e',
+          400: '#ff6464', 500: '#ff2d2d', 600: '#ed0f0f', 700: '#c80808',
+          800: '#a50b0b', 900: '#881111', 950: '#4b0303',
+        },
+        'warning': {
+          50: '#fffbeb', 100: '#fff3c6', 200: '#ffe588', 300: '#ffd14a',
+          400: '#ffbd20', 500: '#f99b07', 600: '#dd7302', 700: '#b74f06',
+          800: '#943c0c', 900: '#7a330d', 950: '#461902',
+        },
+        'safe': {
+          50: '#edfcf2', 100: '#d3f9e0', 200: '#aaf0c6', 300: '#73e3a5',
+          400: '#3bce7f', 500: '#17b363', 600: '#0b9150', 700: '#097441',
+          800: '#0b5c36', 900: '#0a4b2e', 950: '#032a19',
+        },
+        'surface': {
+          50: '#f8fafc', 100: '#f1f5f9', 200: '#e2e8f0', 300: '#cbd5e1',
+          400: '#94a3b8', 500: '#64748b', 600: '#475569', 700: '#334155',
+          800: '#1e293b', 900: '#0f172a', 950: '#020617',
+        },
+      },
+      fontFamily: {
+        'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        'mono': ['JetBrains Mono', 'Fira Code', 'monospace'],
+      },
+      animation: {
+        'pulse-danger': 'pulse-danger 1s ease-in-out infinite',
+        'slide-up': 'slide-up 0.3s ease-out',
+        'slide-down': 'slide-down 0.3s ease-out',
+        'fade-in': 'fade-in 0.3s ease-out',
+        'glow': 'glow 2s ease-in-out infinite',
+        'emergency-flash': 'emergency-flash 0.5s ease-in-out infinite',
+      },
+      keyframes: {
+        'pulse-danger': {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.5' },
+        },
+        'slide-up': {
+          '0%': { transform: 'translateY(10px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        'slide-down': {
+          '0%': { transform: 'translateY(-10px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        'fade-in': {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        'glow': {
+          '0%, 100%': { boxShadow: '0 0 5px rgba(255, 45, 45, 0.3)' },
+          '50%': { boxShadow: '0 0 20px rgba(255, 45, 45, 0.6)' },
+        },
+        'emergency-flash': {
+          '0%, 100%': { backgroundColor: 'rgba(255, 45, 45, 0.9)' },
+          '50%': { backgroundColor: 'rgba(200, 8, 8, 0.95)' },
+        },
+      },
+      backdropBlur: {
+        xs: '2px',
+      },
+    },
+  },
+  plugins: [],
+};
+
+export default config;

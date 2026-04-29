@@ -44,13 +44,10 @@ class ChromaSettings(BaseModel):
     persist_dir: str = Field(default_factory=lambda: os.getenv("CHROMA_PERSIST_DIR", "./data/chromadb"))
 
 
-class MQTTSettings(BaseModel):
-    """Mosquitto MQTT broker configuration."""
-    broker_host: str = Field(default_factory=lambda: os.getenv("MQTT_BROKER_HOST", "localhost"))
-    broker_port: int = Field(default_factory=lambda: int(os.getenv("MQTT_BROKER_PORT", "1883")))
-    username: str = Field(default_factory=lambda: os.getenv("MQTT_USERNAME", ""))
-    password: str = Field(default_factory=lambda: os.getenv("MQTT_PASSWORD", ""))
-    client_id: str = Field(default_factory=lambda: os.getenv("MQTT_CLIENT_ID", "raksha-sethu-server"))
+class UDPSettings(BaseModel):
+    """UDP broadcast configuration for offline LAN alert delivery."""
+    broadcast_ip: str = Field(default_factory=lambda: os.getenv("UDP_BROADCAST_IP", "255.255.255.255"))
+    broadcast_port: int = Field(default_factory=lambda: int(os.getenv("UDP_BROADCAST_PORT", "5005")))
 
 
 class RAGSettings(BaseModel):
@@ -64,7 +61,7 @@ class Settings(BaseModel):
     ollama: OllamaSettings = Field(default_factory=OllamaSettings)
     supabase: SupabaseSettings = Field(default_factory=SupabaseSettings)
     chroma: ChromaSettings = Field(default_factory=ChromaSettings)
-    mqtt: MQTTSettings = Field(default_factory=MQTTSettings)
+    udp: UDPSettings = Field(default_factory=UDPSettings)
     rag: RAGSettings = Field(default_factory=RAGSettings)
     
     app_env: str = Field(default_factory=lambda: os.getenv("APP_ENV", "development"))

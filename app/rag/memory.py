@@ -373,11 +373,21 @@ class SentenceTransformerEmbeddingFunction:
 
     def __call__(self, input: list[str]) -> list[list[float]]:
         """Embed a list of documents (ChromaDB protocol)."""
-        return self._pipeline.embed_batch(input)
+        # Flatten nested lists that ChromaDB may pass
+        flat_input = []
+        for item in input:
+            if isinstance(item, list):
+                flat_input.extend(item)
+            else:
+                flat_input.append(item)
+        return self._pipeline.embed_batch(flat_input)
 
     def embed_query(self, query: str = "", **kwargs) -> list[float]:
         """Embed a single query string (used by ChromaDB during .query())."""
         text = query or kwargs.get("input", "")
+        # Handle case where text is a list
+        if isinstance(text, list):
+            text = text[0] if text else ""
         return self._pipeline.embed_text(text)
 
 

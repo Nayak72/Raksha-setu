@@ -28,9 +28,10 @@ chromadb>=0.5.0
 sentence-transformers>=3.0.0
 numpy>=1.26.0
 
-# --- MQTT ---
-paho-mqtt>=2.1.0
-asyncio-mqtt==0.16.2
+# --- UDP Broadcast (uses built-in socket — no extra deps) ---
+
+# --- Push Notifications ---
+firebase-admin>=6.5.0
 
 # --- Geospatial ---
 geopy==2.4.1

@@ -1,0 +1,203 @@
+/**
+ * Live Map component using Leaflet — dynamically imported to avoid SSR.
+ */
+'use client';
+
+import { useEffect, useRef } from 'react';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import { Zone, Shelter } from '../../lib/supabase';
+
+// Fix default marker icons
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+});
+
+interface LiveMapProps {
+  zones: Zone[];
+  shelters: Shelter[];
+  volunteerCount: number;
+}
+
+function getRiskColor(risk: number): string {
+  if (risk >= 80) return '#ff2d2d';
+  if (risk >= 60) return '#ff6464';
+  if (risk >= 40) return '#ffbd20';
+  if (risk >= 20) return '#ffd14a';
+  return '#3bce7f';
+}
+
+function getRiskLabel(risk: number): string {
+  if (risk >= 80) return 'CRITICAL';
+  if (risk >= 60) return 'HIGH';
+  if (risk >= 40) return 'MEDIUM';
+  if (risk >= 20) return 'LOW';
+  return 'SAFE';
+}
+
+function createZoneIcon(risk: number): L.DivIcon {
+  const color = getRiskColor(risk);
+  const label = getRiskLabel(risk);
+  return L.divIcon({
+    className: 'custom-zone-marker',
+    html: `
+      <div style="position:relative;width:48px;height:48px;display:flex;align-items:center;justify-content:center;">
+        <div style="position:absolute;inset:0;background:${color}20;border:2px solid ${color};border-radius:50%;animation:${risk >= 60 ? 'pulse 2s infinite' : 'none'};"></div>
+        <div style="position:relative;width:24px;height:24px;background:${color};border-radius:50%;box-shadow:0 0 12px ${color}80;display:flex;align-items:center;justify-content:center;">
+          <span style="color:white;font-size:9px;font-weight:700;">${Math.round(risk)}</span>
+        </div>
+        <div style="position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);background:${color};color:white;font-size:8px;font-weight:700;padding:1px 6px;border-radius:4px;white-space:nowrap;letter-spacing:0.5px;">${label}</div>
+      </div>
+    `,
+    iconSize: [48, 48],
+    iconAnchor: [24, 24],
+  });
+}
+
+function createShelterIcon(): L.DivIcon {
+  return L.divIcon({
+    className: 'custom-shelter-marker',
+    html: `
+      <div style="width:32px;height:32px;background:linear-gradient(135deg, #0047e1, #3d84ff);border:2px solid #7babff;border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 10px rgba(29, 78, 216, 0.4);">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+      </div>
+    `,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+  });
+}
+
+function parseShelterLocation(location: string): [number, number] | null {
+  const pointMatch = location.match(/POINT\(([^ ]+) ([^)]+)\)/i);
+  if (pointMatch) return [parseFloat(pointMatch[2]), parseFloat(pointMatch[1])];
+  const parts = location.split(',').map(Number);
+  if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) return [parts[0], parts[1]];
+  return null;
+}
+
+export default function LiveMap({ zones, shelters, volunteerCount }: LiveMapProps) {
+  const mapRef = useRef<L.Map | null>(null);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const zoneLayerRef = useRef<L.LayerGroup>(L.layerGroup());
+  const shelterLayerRef = useRef<L.LayerGroup>(L.layerGroup());
+
+  useEffect(() => {
+    if (!mapContainerRef.current || mapRef.current) return;
+    const map = L.map(mapContainerRef.current, {
+      center: [19.076, 72.8777],
+      zoom: 11,
+      zoomControl: true,
+      attributionControl: false,
+    });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+    zoneLayerRef.current.addTo(map);
+    shelterLayerRef.current.addTo(map);
+    mapRef.current = map;
+
+    return () => {
+      map.remove();
+      mapRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    const layer = zoneLayerRef.current;
+    layer.clearLayers();
+    zones.forEach((zone) => {
+      const marker = L.marker([zone.lat, zone.lon], { icon: createZoneIcon(zone.risk_score) });
+      marker.bindPopup(`
+        <div style="font-family:Inter,sans-serif;padding:4px;">
+          <div style="font-size:14px;font-weight:700;margin-bottom:6px;color:${getRiskColor(zone.risk_score)}">Zone ${zone.id.slice(0, 8)}</div>
+          <div style="font-size:12px;color:#94a3b8;margin-bottom:4px;">Risk Score: <span style="color:${getRiskColor(zone.risk_score)};font-weight:600;">${zone.risk_score.toFixed(1)}</span></div>
+          <div style="font-size:11px;color:#64748b;">${zone.lat.toFixed(4)}, ${zone.lon.toFixed(4)}</div>
+        </div>
+      `);
+      L.circle([zone.lat, zone.lon], {
+        radius: Math.max(500, zone.risk_score * 30),
+        color: getRiskColor(zone.risk_score),
+        fillColor: getRiskColor(zone.risk_score),
+        fillOpacity: 0.08,
+        weight: 1,
+        opacity: 0.3,
+      }).addTo(layer);
+      marker.addTo(layer);
+    });
+    if (zones.length > 0 && mapRef.current) {
+      const bounds = L.latLngBounds(zones.map((z) => [z.lat, z.lon]));
+      mapRef.current.fitBounds(bounds, { padding: [50, 50], maxZoom: 13 });
+    }
+  }, [zones]);
+
+  useEffect(() => {
+    const layer = shelterLayerRef.current;
+    layer.clearLayers();
+    shelters.forEach((shelter) => {
+      const coords = parseShelterLocation(shelter.location);
+      if (!coords) return;
+      const marker = L.marker(coords, { icon: createShelterIcon() });
+      const occupancy = ((shelter.capacity - shelter.available_beds) / shelter.capacity) * 100;
+      const occColor = occupancy > 80 ? '#ff2d2d' : occupancy > 50 ? '#ffbd20' : '#3bce7f';
+      marker.bindPopup(`
+        <div style="font-family:Inter,sans-serif;padding:4px;">
+          <div style="font-size:14px;font-weight:700;margin-bottom:6px;color:#3d84ff;">🏠 Shelter ${shelter.id.slice(0, 8)}</div>
+          <div style="font-size:12px;color:#94a3b8;margin-bottom:2px;">Capacity: <span style="font-weight:600;color:white;">${shelter.capacity}</span></div>
+          <div style="font-size:12px;color:#94a3b8;margin-bottom:4px;">Available: <span style="font-weight:600;color:${occColor};">${shelter.available_beds}</span></div>
+          <div style="background:#0f172a;border-radius:4px;height:6px;overflow:hidden;margin-top:4px;">
+            <div style="height:100%;width:${occupancy}%;background:${occColor};border-radius:4px;"></div>
+          </div>
+        </div>
+      `);
+      marker.addTo(layer);
+    });
+  }, [shelters]);
+
+  return (
+    <div className="relative w-full h-full rounded-2xl overflow-hidden">
+      <div ref={mapContainerRef} className="w-full h-full" id="live-map" />
+      <div className="absolute bottom-4 left-4 glass-panel p-3 z-[1000]">
+        <div className="text-xs font-semibold text-surface-300 mb-2 uppercase tracking-wider">Risk Levels</div>
+        <div className="flex flex-col gap-1.5">
+          {[
+            { label: 'Critical', color: '#ff2d2d', range: '80-100' },
+            { label: 'High', color: '#ff6464', range: '60-79' },
+            { label: 'Medium', color: '#ffbd20', range: '40-59' },
+            { label: 'Low', color: '#ffd14a', range: '20-39' },
+            { label: 'Safe', color: '#3bce7f', range: '0-19' },
+          ].map((level) => (
+            <div key={level.label} className="flex items-center gap-2 text-xs">
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: level.color, boxShadow: `0 0 6px ${level.color}60` }} />
+              <span className="text-surface-300">{level.label}</span>
+              <span className="text-surface-500 ml-auto">{level.range}</span>
+            </div>
+          ))}
+        </div>
+        <div className="border-t border-surface-700/50 mt-2 pt-2 flex items-center gap-2 text-xs">
+          <div className="w-3 h-3 rounded bg-raksha-500" />
+          <span className="text-surface-300">Shelters</span>
+        </div>
+      </div>
+      <div className="absolute top-4 right-4 glass-panel p-3 z-[1000]">
+        <div className="flex items-center gap-4 text-xs">
+          <div className="flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-danger-500 animate-pulse" />
+            <span className="text-surface-300">{zones.filter((z) => z.risk_score >= 60).length} High Risk</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-raksha-500" />
+            <span className="text-surface-300">{shelters.length} Shelters</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-safe-500" />
+            <span className="text-surface-300">{volunteerCount} Volunteers</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

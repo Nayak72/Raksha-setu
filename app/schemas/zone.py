@@ -66,7 +66,7 @@ class SystemStatus(BaseModel):
     """Aggregate system health snapshot."""
 
     status: str = "operational"
-    mqtt_connected: bool = False
+    udp_active: bool = True
     pg_listener_active: bool = False
     active_zones: int = 0
     total_volunteers: int = 0

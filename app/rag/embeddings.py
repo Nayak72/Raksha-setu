@@ -34,7 +34,7 @@ def _get_model() -> SentenceTransformer:
                 logger.info(f"Loading sentence-transformer model: {model_name}")
                 _model_instance = SentenceTransformer(model_name)
                 logger.info(
-                    f"Model loaded: dim={_model_instance.get_sentence_embedding_dimension()}"
+                    f"Model loaded: dim={_model_instance.get_embedding_dimension()}"
                 )
     return _model_instance
 
@@ -55,7 +55,7 @@ class EmbeddingPipeline:
 
     def __init__(self):
         self._model = _get_model()
-        self._dimension = self._model.get_sentence_embedding_dimension()
+        self._dimension = self._model.get_embedding_dimension()
         logger.info(f"EmbeddingPipeline ready: dim={self._dimension}")
 
     @property
@@ -94,11 +94,20 @@ class EmbeddingPipeline:
         if not texts:
             return []
 
+        # Flatten nested lists (ChromaDB sometimes passes [["text"]])
+        flat_texts = []
+        for t in texts:
+            if isinstance(t, list):
+                flat_texts.extend(t)
+            else:
+                flat_texts.append(t)
+        texts = flat_texts
+
         # Filter empty strings but track positions
         valid_indices = []
         valid_texts = []
         for i, t in enumerate(texts):
-            if t and t.strip():
+            if t and isinstance(t, str) and t.strip():
                 valid_indices.append(i)
                 valid_texts.append(t)
 
@@ -110,7 +119,12 @@ class EmbeddingPipeline:
             batch_size=batch_size,
             normalize_embeddings=True,
             show_progress_bar=False,
+            convert_to_numpy=True
         )
+
+        # Ensure embeddings is 2D even if only one text was encoded
+        if len(valid_texts) == 1 and len(embeddings.shape) == 1:
+            embeddings = embeddings[np.newaxis, :]
 
         # Reconstruct full results with zero vectors for empty inputs
         results = [[0.0] * self._dimension for _ in texts]

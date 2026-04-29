@@ -58,15 +58,36 @@ While LLMs are great at reasoning, they are terrible at exact mathematics and sp
 
 ---
 
-## 4. 🌦️ Stochastic Weather Simulation Dataset (Dynamic Generation)
+---
+
+## 5. 🔔 Alert & Acknowledgment Dataset (Real-time Audit Trail)
+
+**What it is:**
+A relational dataset in **Supabase** that tracks the lifecycle of every emergency alert sent by the system.
+
+**It consists of:**
+1.  **Alerts Table**: Stores the unique `alert_id`, message, severity, and the specific agent reasoning that triggered it.
+2.  **Acknowledgments Table**: Tracks which `device_id` received which `alert_id` and at what time.
+
+**How it is used:**
+*   **The Notifier Agent:** Generates the unique IDs used to link these tables.
+*   **The Android App:** When an alert is received (via UDP or FCM), the app automatically sends an "ACK" (Acknowledgment) back to the backend.
+*   **The Operator Dashboard:** Displays real-time "Read Receipts" for the emergency broadcast, letting operators know exactly how many people in a zone have seen the evacuation order.
+
+**Why it is used:**
+In a disaster, "sending" a message is only half the battle. Knowing who **received** it is critical for life-safety decisions. If a zone has 1,000 residents but only 50 acknowledgments are received, the Supervisor agent can identify a communication blackout or a need for physical door-to-door intervention.
+
+---
+
+## 6. 🌦️ Stochastic Weather Simulation Dataset (Dynamic Generation)
 
 **What it is:**
 Unlike static datasets, this is a dynamically generated, time-series dataset produced by the system's **Weather Agent**.
 
 **How it is used:**
 *   It takes baseline meteorological data and applies continuous mathematical transformations based on the zone's terrain.
-*   *Example:* If the terrain is "hilly" and elevation is above 500m, the agent mathematically increases the rainfall multiplier (simulating orographic lift). 
 *   It outputs a continuous stream of `rainfall_mm`, `wind_speed_kmh`, and `humidity_pct`.
 
 **Why it is used:**
-Weather is the primary multiplier of disaster severity. A minor flood becomes a critical emergency if continuous heavy rainfall is projected for the next 6 hours. This dynamically generated dataset allows the AI to predict the *trajectory* of the disaster, rather than just reacting to the *current* state.
+Weather is the primary multiplier of disaster severity. This dynamically generated dataset allows the AI to predict the *trajectory* of the disaster, rather than just reacting to the *current* state.
+

@@ -9,7 +9,7 @@ RakshaSetu is an advanced, real-time disaster management and emergency response 
 
 The project is structured into four highly decoupled, scalable layers:
 
-### 1. 🖥️ Frontend Layer (React + Vite + TailwindCSS)
+### 1. 🖥️ Frontend Layer (Next.js + TailwindCSS)
 The frontend serves as the live command center for emergency operators.
 * **Live Map Visualization**: Uses `Leaflet` to plot critical zones, risk radii, shelters, and volunteer locations dynamically.
 * **Event-Driven UI**: Built with `Supabase Realtime`, allowing metrics, logs, and alerts to update instantly without HTTP polling.
@@ -90,14 +90,14 @@ Go to your **Supabase Dashboard -> SQL Editor** and execute the SQL scripts foun
 * `002_agent_logs.sql` (Creates the tracking table for AI reasoning steps)
 
 ### 4. Frontend Setup
-Open a new terminal and prepare the React frontend:
+Open a new terminal and prepare the Next.js frontend:
 ```powershell
 cd frontend
 npm install
 
-# Optional: verify frontend environment variables in frontend/.env
-# VITE_API_BASE=http://localhost:8001
-# VITE_MQTT_WS_URL=ws://test.mosquitto.org:8080/mqtt
+# Optional: verify frontend environment variables in frontend/.env.local
+# NEXT_PUBLIC_API_URL=http://localhost:8001
+# NEXT_PUBLIC_MQTT_WS_URL=ws://test.mosquitto.org:8080/mqtt
 ```
 
 ---
@@ -118,13 +118,13 @@ ollama run qwen2.5:7b
 python -m uvicorn app.main:app --port 8001 --reload
 ```
 
-**Terminal 3: React Frontend**
+**Terminal 3: Next.js Frontend**
 ```powershell
 cd frontend
 npm run dev
 ```
 
-Visit `http://localhost:5173` in your browser. The dashboard will connect to Supabase Realtime and the MQTT WebSocket.
+Visit `http://localhost:3000` in your browser. The dashboard will connect to Supabase Realtime and the MQTT WebSocket.
 
 ---
 

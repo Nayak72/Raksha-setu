@@ -24,3 +24,7 @@
 *.gif binary
 *.ico binary
 *.pdf binary
+*.pt binary
+*.pth binary
+*.weights binary
+*.onnx binary

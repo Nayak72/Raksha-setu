@@ -1,17 +1,20 @@
 """
-Alert Service – orchestrates alert creation, persistence, and MQTT broadcast.
+Alert Service – orchestrates alert creation, persistence, and UDP broadcast.
 
 Single entry point: `create_and_broadcast_alert()`
 """
 
 from __future__ import annotations
 
+import uuid
+from datetime import datetime, timezone
 from typing import Any
 
 import structlog
 
 from app.db import crud as db
-from app.mqtt.publisher import publish_alert
+from app.network.udp_sender import send_udp_broadcast_async
+from app.network.fcm_sender import send_fcm_alert_async
 
 logger = structlog.get_logger(__name__)
 
@@ -20,19 +23,17 @@ async def create_and_broadcast_alert(
     zone: str,
     message: str,
     severity: str = "medium",
-    mqtt_topic: str | None = None,
-    qos: int = 1,
+    **kwargs,
 ) -> dict[str, Any]:
     """
     1. Persist the alert in Supabase
-    2. Broadcast via MQTT to the appropriate topic
+    2. Broadcast via UDP to all devices on the LAN
+    3. Send FCM push notification for closed apps
 
     Args:
         zone:       Zone identifier
         message:    Human-readable alert message
         severity:   low | medium | high | critical
-        mqtt_topic: Override topic (defaults to "alerts/{zone}")
-        qos:        MQTT QoS level
 
     Returns:
         The persisted alert record.
@@ -44,23 +45,29 @@ async def create_and_broadcast_alert(
         severity=severity,
     )
 
-    # 2. Build MQTT payload
-    topic = mqtt_topic or f"alerts/{zone}"
+    # 2. Build UDP payload (mandatory format)
+    alert_id = str(alert_record.get("id", uuid.uuid4()))
     payload = {
-        "alert_id": alert_record.get("id", "unknown"),
+        "type": "ALERT",
+        "alert_id": alert_id,
         "zone": zone,
+        "severity": severity.upper(),
         "message": message,
-        "severity": severity,
-        "timestamp": alert_record.get("timestamp", ""),
+        "timestamp": alert_record.get(
+            "timestamp", datetime.now(timezone.utc).isoformat()
+        ),
     }
 
-    # 3. Broadcast
-    success = await publish_alert(topic=topic, payload=payload, qos=qos)
+    # 3. Broadcast via UDP
+    success = await send_udp_broadcast_async(payload)
 
-    if success:
+    # 4. Broadcast via FCM (Push Notification for closed apps)
+    fcm_success = await send_fcm_alert_async(payload)
+
+    if success or fcm_success:
         logger.info("alert_service.broadcast_success", zone=zone, severity=severity)
     else:
-        logger.warning("alert_service.broadcast_failed", zone=zone, topic=topic)
+        logger.warning("alert_service.broadcast_failed", zone=zone)
 
     return alert_record
 

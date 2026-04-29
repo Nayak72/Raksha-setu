@@ -86,7 +86,7 @@ Composite = (flood_level * 0.40) + (crowd_density * 0.30) + (structural_damage *
 
 ### C. Zone Analyst (RAG-Powered Decision Maker)
 **Role:** The core analytical brain. It fuses detection data, weather simulations, and historical disaster data (RAG memory) to make an actionable decision.
-    
+
 **Working Mechanism:**
 1.  Queries ChromaDB (Vector DB) to retrieve past events with similar weather/detection signatures.
 2.  Triggers a multi-agent **AutoGen Internal Debate** between sub-agents (Risk Assessor vs. Safety Planner).
@@ -147,14 +147,17 @@ The data travels through the system without polling, utilizing pure event-driven
 2.  **Execution Trace**: As the `AgentState` moves from Triage $\rightarrow$ Weather $\rightarrow$ Zone Analyst $\rightarrow$ Allocator, each agent appends its output (`reasoning_steps`, `confidence`, `tools_used`) to the `execution_trace` list.
 3.  **RAG Ingestion**: Concurrently, the raw detection is ingested into the **ChromaDB vector store** using `sentence-transformers` to build historical context for future runs.
 
-### Phase 3: Actuation & Broadcasting
+### Phase 3: Actuation & Alerting
 1.  **Database Updates**: The Resource Allocator executes PostgREST queries to decrement `available_beds` in the `shelters` table and update `volunteer.status` to 'DEPLOYED'.
 2.  **Alert Generation**: The Notifier Agent generates a human-readable text block.
-3.  **MQTT Publish**: The alert payload (containing the zone, message, severity, and routing path) is published to `test.mosquitto.org:1883` under a specific topic.
-4.  **Logging**: Finally, the complete `execution_trace` from all agents is flattened and stored in the `agent_logs` table in Supabase.
+3.  **Path A: UDP Broadcast**: A raw UDP packet is sent to port `5005` to reach all devices on the local LAN (Offline Resilience).
+4.  **Path B: FCM Push**: A high-priority data message is sent to the Firebase `"alerts"` topic to wake up closed Android apps (Wake-on-Push).
+5.  **Logging**: The complete `execution_trace` is stored in the `agent_logs` table.
 
-### Phase 4: Frontend Visualization
-1.  **WebSocket Receivers**: The React UI is subscribed to two data streams:
-    *   **Supabase Realtime**: Instantly pushes the new `agent_logs` and updated shelter capacities to the React state.
-    *   **MQTT WebSocket**: Receives the live alert payload via `test.mosquitto.org:8080`.
-2.  **UI Updates**: The `LiveMap` colors the zone red (CRITICAL), the `MetricCards` update the available capacities, and the `AgentLogsPanel` visually expands to show the exact mathematical decisions the agents made.
+### Phase 4: Device & UI Visualization
+1.  **React Dashboard**: Subscribed to Supabase Realtime for live metrics and agent logs.
+2.  **Android App**:
+    *   **UDP Path**: The `UdpListenerService` foreground service catches the broadcast packet instantly if on the same network.
+    *   **FCM Path**: If the user is on mobile data, the FCM push wakes the app.
+    *   **Acknowledgment**: Both paths trigger the same `AlertActivity` overlay, and the app sends an HTTP POST back to `/api/v1/acknowledge`.
+

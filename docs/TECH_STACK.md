@@ -43,15 +43,29 @@ This document provides a comprehensive breakdown of all the frameworks, tools, a
 * **Realtime Publications**: The React frontend subscribes to table changes. When the Resource Allocator locks in volunteer assignments, the UI metric cards update instantly without the frontend having to refresh or poll the server.
 * **Spatial Queries**: Uses PostGIS `ST_Distance` inside the backend tools to calculate which shelters are closest to the disaster epicenter.
 
-## 6. MQTT (Message Queuing Telemetry Transport)
-**What it is:** A lightweight publish-subscribe messaging transport protocol designed for constrained devices and low-bandwidth, high-latency networks.
-**Why we use it:** HTTP is too heavy for broadcasting alerts to thousands of mobile phones or IoT sirens in a degraded network. MQTT requires minimal overhead and ensures message delivery via Quality of Service (QoS) levels.
+## 6. UDP Broadcast (Local Resilience)
+**What it is:** A connectionless, low-overhead communication protocol used for one-to-many broadcasting on a local network.
+**Why we use it:** **Offline Survivability.** During a disaster, the internet often fails. UDP allows the system to alert everyone on the local LAN/Mesh network (like a neighborhood Wi-Fi or community network) even if the global web is completely offline.
 **How it's used:** 
-* A public broker (`test.mosquitto.org`) is utilized as the central message hub.
-* The backend **Notifier Agent** constructs the final emergency text payload and publishes it via Python's `paho-mqtt` on port `1883`.
-* The React frontend acts as an end-client, subscribing to the topic via WebSockets on port `8080` to display the "Emergency Broadcast" red banner.
+* The Python backend sends raw datagrams to the `255.255.255.255` broadcast address on port `5005`. 
+* This bypasses the need for any central server, broker, or handshake, making it extremely robust in unstable network conditions.
 
-## 7. React, Vite, TailwindCSS & Leaflet
+## 7. Firebase Cloud Messaging (FCM)
+**What it is:** A cross-platform messaging solution that lets you reliably deliver messages at no cost.
+**Why we use it:** **Wake-on-Push.** Standard background services on Android are often killed to save battery. FCM high-priority "data" messages are the only reliable way to "wake up" a completely closed app to show an emergency alert.
+**How it's used:** 
+* The Python backend uses the `firebase-admin` SDK to push alerts to the `"alerts"` topic.
+* This ensures that even if a citizen has swiped the app away, their phone will still receive the evacuation order.
+
+## 8. Android Application (Kotlin & Foreground Services)
+**What it is:** A native mobile application built for disaster-affected citizens.
+**Why we use it:** Browsers cannot access low-level networking (like UDP sockets) or bypass lock screens. A native app provides high-priority "Critical Alerts".
+**How it's used:** 
+* **Foreground Service**: Runs a `UdpListenerService` with a persistent notification to keep the network socket open indefinitely.
+* **Lock-Screen Overlay**: Uses `AlertActivity` with `showWhenLocked` flags to ensure instructions are visible without needing to unlock the device.
+* **Networking**: Uses `OkHttp` for reliable HTTP POST acknowledgments of alerts.
+
+## 9. React, Vite, TailwindCSS & Leaflet
 **What it is:** The modern frontend stack. React for component logic, Vite for ultra-fast build tooling, Tailwind for utility-first styling, and Leaflet for interactive maps.
 **Why we use it:** Emergency operators need a visually dense, instantly updating, and highly responsive dashboard. 
 **How it's used:** 
@@ -59,8 +73,9 @@ This document provides a comprehensive breakdown of all the frameworks, tools, a
 * **Leaflet**: Renders the `LiveMap`, plotting risk zones with pulsating radius circles (based on severity score) and shelter capacities dynamically.
 * **Tailwind**: Enables the "Glassmorphism" dark-mode UI, providing a premium, high-contrast command center aesthetic.
 
-## 8. Event-Driven Architecture (Concept)
+## 10. Event-Driven Architecture (Concept)
 **What it is:** A software architecture paradigm promoting the production, detection, consumption of, and reaction to events, rather than scheduled polling.
 **Why we use it:** Constant API polling (asking "is there new data?" every 2 seconds) wastes massive amounts of CPU and network bandwidth.
 **How it's used:** 
-* The entire system is reactive. A camera detects a flood $\rightarrow$ pushes to API $\rightarrow$ triggers Background Task $\rightarrow$ triggers Agent Pipeline $\rightarrow$ updates Database $\rightarrow$ triggers Supabase Realtime $\rightarrow$ updates React State. The data flows sequentially from the physical sensor all the way to the operator's screen natively pushed by events.
+* The entire system is reactive. A camera detects a flood $\rightarrow$ pushes to API $\rightarrow$ triggers Background Task $\rightarrow$ triggers Agent Pipeline $\rightarrow$ updates Database $\rightarrow$ triggers Supabase Realtime $\rightarrow$ updates React State & Mobile Devices.
+

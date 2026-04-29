@@ -1,0 +1,101 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-bg: #020617;
+    --color-surface: #0f172a;
+    --color-surface-elevated: #1e293b;
+    --color-border: #334155;
+    --color-text: #f8fafc;
+    --color-text-muted: #94a3b8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background: var(--color-bg);
+    color: var(--color-text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #475569; }
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-surface-900/60 backdrop-blur-xl border border-surface-700/50 rounded-2xl;
+  }
+  .glass-panel-elevated {
+    @apply bg-surface-800/70 backdrop-blur-xl border border-surface-600/40 rounded-2xl shadow-xl;
+  }
+  .gradient-text {
+    @apply bg-gradient-to-r from-raksha-400 to-raksha-200 bg-clip-text text-transparent;
+  }
+  .status-badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium;
+  }
+  .status-critical {
+    @apply status-badge bg-danger-500/20 text-danger-400 border border-danger-500/30;
+  }
+  .status-warning {
+    @apply status-badge bg-warning-500/20 text-warning-400 border border-warning-500/30;
+  }
+  .status-safe {
+    @apply status-badge bg-safe-500/20 text-safe-400 border border-safe-500/30;
+  }
+  .status-info {
+    @apply status-badge bg-raksha-500/20 text-raksha-400 border border-raksha-500/30;
+  }
+  .metric-card {
+    @apply glass-panel p-5 transition-all duration-300 hover:border-raksha-500/30 hover:shadow-lg hover:shadow-raksha-500/5;
+  }
+  .nav-link {
+    @apply flex items-center gap-3 px-4 py-3 rounded-xl text-surface-400 transition-all duration-200 hover:bg-surface-800/60 hover:text-white;
+  }
+  .nav-link-active {
+    @apply nav-link bg-raksha-500/10 text-raksha-400 border border-raksha-500/20;
+  }
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-raksha-600 text-white font-medium transition-all duration-200 hover:bg-raksha-500 hover:shadow-lg hover:shadow-raksha-500/25 active:scale-95;
+  }
+  .btn-danger {
+    @apply inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-danger-600 text-white font-medium transition-all duration-200 hover:bg-danger-500 hover:shadow-lg hover:shadow-danger-500/25 active:scale-95;
+  }
+  .input-field {
+    @apply w-full px-4 py-2.5 rounded-xl bg-surface-800 border border-surface-600 text-white placeholder-surface-400 focus:outline-none focus:border-raksha-500 focus:ring-1 focus:ring-raksha-500/50 transition-all duration-200;
+  }
+  .log-entry {
+    @apply flex gap-3 p-3 rounded-lg bg-surface-800/40 border border-surface-700/30 font-mono text-sm animate-slide-up;
+  }
+}
+
+/* Leaflet map overrides */
+.leaflet-container { background: #0f172a !important; border-radius: 1rem; }
+.leaflet-tile-pane { filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7); }
+.leaflet-control-zoom { border: none !important; }
+.leaflet-control-zoom a { background: #1e293b !important; color: #f8fafc !important; border: 1px solid #334155 !important; }
+.leaflet-popup-content-wrapper { background: #1e293b !important; color: #f8fafc !important; border: 1px solid #334155 !important; border-radius: 12px !important; }
+.leaflet-popup-tip { background: #1e293b !important; }
+
+/* Emergency Alert Overlay */
+.emergency-overlay { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; animation: emergency-flash 0.5s ease-in-out infinite; }
+
+/* ReactFlow overrides */
+.react-flow__background { background: #0f172a !important; }
+.react-flow__minimap { background: #1e293b !important; border: 1px solid #334155 !important; border-radius: 12px !important; }
+.react-flow__controls { border: none !important; }
+.react-flow__controls-button { background: #1e293b !important; color: #f8fafc !important; border: 1px solid #334155 !important; }

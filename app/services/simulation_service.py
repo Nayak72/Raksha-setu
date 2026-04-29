@@ -3,7 +3,7 @@ Backend Auto-Simulation Service.
 
 Runs as a background asyncio task inside the FastAPI server.
 Every 5 seconds it generates a randomised disaster detection event,
-triggers the full agent pipeline (triage → dispatch → notifier → MQTT),
+triggers the full agent pipeline (triage → dispatch → notifier → UDP broadcast),
 and updates the Supabase tables so the frontend dashboard refreshes
 automatically via Realtime subscriptions.
 """
@@ -19,7 +19,6 @@ import structlog
 
 from app.db import crud as db
 from app.db.listener import _run_graph_for_zone
-from app.mqtt.client import mqtt_manager
 
 logger = structlog.get_logger(__name__)
 

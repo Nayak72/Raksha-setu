@@ -25,12 +25,26 @@ dist/
 build/
 *.sqlite3
 
+# Project specific
+data/
+logs/*.json
+logs/*.log
+logs/*.txt
+datasets/
+model_pipeline/weights/
+runs/
+*.pt
+*.pth
+*.weights
+*.bin
+*.onnx
+*.engine
+!model_pipeline/weights/.gitkeep
+
 # Node & Frontend
 node_modules/
-npm-debug.log
-yarn-error.log
-yarn-debug.log
-.pnpm-debug.log
+frontend/.next/
+frontend/node_modules/
 frontend/dist/
 frontend/build/
 .eslintcache
@@ -42,12 +56,6 @@ frontend/build/
 .env.test.local
 .env.production.local
 
-# Project specific
-mosquitto_data/
-mosquitto_log/
-chroma/
-vector_db/
-
 # OS generated files
 .DS_Store
 .DS_Store?
@@ -56,9 +64,3 @@ vector_db/
 .Trashes
 ehthumbs.db
 Thumbs.db
-
-# Project logs and data
-data/
-logs/agent_demo_output.txt
-logs/agent_logs_out.json
-logs/api_logs.json

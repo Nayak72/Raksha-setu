@@ -25,11 +25,6 @@ class AlertCreate(BaseModel):
     zone: str = Field(..., description="Zone identifier or name")
     message: str = Field(..., min_length=1, max_length=1000)
     severity: Severity = Severity.MEDIUM
-    mqtt_topic: Optional[str] = Field(
-        default=None,
-        description="Override MQTT topic; defaults to 'alerts/{zone}'",
-    )
-    qos: int = Field(default=1, ge=0, le=2)
 
 
 class AlertResponse(BaseModel):

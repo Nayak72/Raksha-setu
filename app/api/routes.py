@@ -21,7 +21,6 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException, status
 
 from app.db import crud as db
 from app.db.listener import _run_graph_for_zone
-from app.mqtt.client import mqtt_manager
 from app.schemas.alert import AlertCreate, AlertResponse, AcknowledgmentCreate
 from app.schemas.detection import DetectionCreate, DetectionResponse
 from app.schemas.weather import WeatherSimulationRequest, WeatherSimulationResponse
@@ -164,14 +163,14 @@ async def simulate_weather(
     status_code=status.HTTP_201_CREATED,
     summary="Broadcast a disaster alert",
     description=(
-        "Manually create and broadcast an alert via MQTT. "
-        "The alert is persisted in Supabase and published to the broker."
+        "Manually create and broadcast an alert via UDP. "
+        "The alert is persisted in Supabase and broadcast to all LAN devices."
     ),
 )
 async def broadcast_alert(
     payload: AlertCreate,
 ) -> AlertResponse:
-    """Create, persist, and broadcast an alert over MQTT."""
+    """Create, persist, and broadcast an alert via UDP."""
     logger.info(
         "api.broadcast_alert",
         zone=payload.zone,
@@ -182,8 +181,6 @@ async def broadcast_alert(
         zone=payload.zone,
         message=payload.message,
         severity=payload.severity.value,
-        mqtt_topic=payload.mqtt_topic,
-        qos=payload.qos,
     )
 
     if not record:
@@ -238,7 +235,7 @@ async def system_status() -> SystemStatus:
 
     return SystemStatus(
         status="operational",
-        mqtt_connected=True,  # Forced to True because test.mosquitto.org drops connections
+        udp_active=True,  # UDP is stateless — always available
         pg_listener_active=True,  # Bypassed via HTTP background tasks on Windows
         active_zones=counts.get("active_zones", 0),
         total_volunteers=counts.get("total_volunteers", 0),

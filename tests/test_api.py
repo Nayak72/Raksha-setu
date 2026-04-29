@@ -19,7 +19,7 @@ def anyio_backend():
 
 @pytest.fixture
 async def client():
-    """Async test client that bypasses MQTT and PG listener."""
+    """Async test client that bypasses network listeners."""
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
@@ -36,7 +36,7 @@ async def test_status_endpoint(client: AsyncClient):
 
     data = response.json()
     assert data["status"] == "operational"
-    assert "mqtt_connected" in data
+    assert "udp_active" in data
     assert "pg_listener_active" in data
     assert "uptime_seconds" in data
 
@@ -86,14 +86,3 @@ async def test_alert_validation(client: AsyncClient):
     })
     assert response.status_code == 422
 
-
-@pytest.mark.anyio
-async def test_alert_qos_range(client: AsyncClient):
-    """QoS must be 0, 1, or 2."""
-    response = await client.post("/api/v1/broadcast-alert", json={
-        "zone": "test-zone",
-        "message": "Test alert",
-        "severity": "low",
-        "qos": 5,
-    })
-    assert response.status_code == 422

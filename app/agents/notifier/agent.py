@@ -15,35 +15,16 @@ Routing decisions:
 
 import json
 import logging
+import requests
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from app.shared.state import AgentState
 from app.shared.utils import get_llm, from_json
 from app.shared.tracer import trace_entry, trace_exit
-from app.agents.notifier.mqtt_client import MQTTPublisher
-from app.agents.notifier.ack_manager import ACKManager
 from app.agents.notifier.prompts import NOTIFIER_SYSTEM_PROMPT
 from app.db.connection import execute_query
 
 logger = logging.getLogger(__name__)
-
-# Singleton MQTT instances
-_mqtt_publisher = None
-_ack_manager = None
-
-
-def _get_mqtt():
-    global _mqtt_publisher
-    if _mqtt_publisher is None:
-        _mqtt_publisher = MQTTPublisher()
-    return _mqtt_publisher
-
-
-def _get_ack_manager():
-    global _ack_manager
-    if _ack_manager is None:
-        _ack_manager = ACKManager()
-    return _ack_manager
 
 
 def notifier_node(state: AgentState) -> dict:
@@ -132,33 +113,32 @@ Determine the notification strategy. Respond with JSON:
         reasoning_steps.append("  → CRITICAL severity: broadcasting to global + critical + zone topics.")
 
     # ==================================================================
-    # Step 3: Publish alerts via MQTT
+    # Step 3: Publish alerts via Network Broadcast
     # ==================================================================
     delivery_status = "dashboard_only"
     publish_failed = False
 
     if topics:
-        reasoning_steps.append("Step 3: Publishing alerts via MQTT.")
-        mqtt = _get_mqtt()
+        reasoning_steps.append("Step 3: Publishing alerts via Network Broadcast.")
         tools_used.append("broadcast_alert")
 
-        alert_payload = json.dumps({
-            "zone_id": zone_id,
-            "level": level,
+        alert_payload = {
+            "zone": zone_id,
             "message": message,
-            "decision": decision,
-            "weather_severity": weather_severity,
-            "priority": priority,
-        })
+            "severity": level.lower()
+        }
 
         publish_success = True
-        for topic in topics:
-            try:
-                mqtt.publish(topic, alert_payload, qos=1 if level == "CRITICAL" else 0)
-                reasoning_steps.append(f"  → Published to {topic}")
-            except Exception as e:
-                reasoning_steps.append(f"  → FAILED to publish to {topic}: {e}")
+        try:
+            resp = requests.post("http://localhost:8001/broadcast-alert", json=alert_payload, timeout=5.0)
+            if resp.status_code in (200, 201):
+                reasoning_steps.append(f"  → Broadcasted successfully")
+            else:
+                reasoning_steps.append(f"  → FAILED to broadcast: HTTP {resp.status_code}")
                 publish_success = False
+        except Exception as e:
+            reasoning_steps.append(f"  → FAILED to broadcast: {e}")
+            publish_success = False
 
         if publish_success:
             delivery_status = "sent"

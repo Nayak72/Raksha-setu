@@ -2,7 +2,7 @@
 FastAPI application factory with lifespan management.
 
 Wires up:
-  • MQTT client connect / disconnect
+  • UDP broadcast layer (replaces MQTT)
   • Supabase Realtime listener
   • Structured logging
 """
@@ -18,7 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
 from app.api.routes import router as api_router
-from app.mqtt.client import mqtt_manager
+
 from app.db.listener import start_pg_listener, stop_pg_listener
 from app.services.simulation_service import start_simulation, stop_simulation
 
@@ -34,9 +34,8 @@ async def lifespan(app: FastAPI):
     """Manage async resources across the application lifecycle."""
     logger.info("raksha.startup", env=settings.app_env)
 
-    # 1. Connect MQTT
-    await mqtt_manager.connect()
-    logger.info("mqtt.connected", broker=settings.mqtt.broker_host)
+    # 1. UDP broadcast layer is stateless — no connection needed
+    logger.info("udp.ready", broadcast_port=settings.udp.broadcast_port)
 
     # 2. Start Postgres NOTIFY listener (event-driven agents)
     listener_task = asyncio.create_task(start_pg_listener())
@@ -64,9 +63,7 @@ async def lifespan(app: FastAPI):
         
     from app.db.supabase_client import close_pg_pool
     await close_pg_pool()
-    
-    await mqtt_manager.disconnect()
-    logger.info("mqtt.disconnected")
+    logger.info("udp.shutdown")
 
 
 # ─────────────────────────────────────────────
