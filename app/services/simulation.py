@@ -56,13 +56,13 @@ class SimulationEngine:
                 state.cycle_count += 1
                 logger.info(f"Simulation cycle {state.cycle_count} completed.")
                 
-                # Wait 5 seconds
-                await asyncio.sleep(5)
+                # Wait 10 seconds
+                await asyncio.sleep(10)
                 
             except asyncio.CancelledError:
                 break
             except Exception as e:
                 logger.error(f"Simulation error: {e}")
-                await asyncio.sleep(5) # Continue on error
+                await asyncio.sleep(10) # Continue on error
 
 engine = SimulationEngine()

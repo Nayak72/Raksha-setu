@@ -23,7 +23,7 @@ from app.db.listener import _run_graph_for_zone
 logger = structlog.get_logger(__name__)
 
 # ── Configuration ──────────────────────────────
-INTERVAL_SECONDS = 5
+INTERVAL_SECONDS = 10
 
 _running = False
 _task: asyncio.Task | None = None
