@@ -16,7 +16,7 @@ export function useAgentLogs() {
 
   const fetchLogs = useCallback(async () => {
     try {
-      const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
       const res = await fetch(`${base}/api/v1/agent-logs`);
       if (res.ok) {
         const data = await res.json();
@@ -286,7 +286,7 @@ export function useSystemStatus() {
   const intervalRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
 
   const fetchStatus = useCallback(async () => {
-    const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
     try {
       const res = await fetch(`${base}/api/v1/status`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);

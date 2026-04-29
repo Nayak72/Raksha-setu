@@ -3,7 +3,7 @@
  */
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip,
   ResponsiveContainer, CartesianGrid, AreaChart, Area,
@@ -11,6 +11,8 @@ import {
 } from 'recharts';
 import { Activity, Users, Shield, TrendingUp, AlertTriangle, Eye, Zap, RefreshCw } from 'lucide-react';
 import type { Zone, Alert, Volunteer, Shelter, Detection } from '../../lib/supabase';
+import type { SimulationState } from '../../hooks/useSimulation';
+import { fetchSheltersNear, type SimShelter } from '../../lib/simulation-api';
 
 const REFRESH_INTERVAL = 5_000;
 
@@ -85,9 +87,9 @@ function StatCard({ icon: Icon, label, value, color, subtext }: { icon: React.El
 
 const darkTooltipStyle = { backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '10px', boxShadow: '0 8px 32px rgba(0,0,0,0.4)', fontSize: '12px' };
 
-interface AnalyticsTabProps { zones: Zone[]; alerts: Alert[]; volunteers: Volunteer[]; shelters: Shelter[]; detections: Detection[] }
+interface AnalyticsTabProps { zones: Zone[]; alerts: Alert[]; volunteers: Volunteer[]; shelters: Shelter[]; detections: Detection[]; sim?: SimulationState; }
 
-export default function AnalyticsTab({ zones, alerts, volunteers, shelters, detections }: AnalyticsTabProps) {
+export default function AnalyticsTab({ zones, alerts, volunteers, shelters, detections, sim }: AnalyticsTabProps) {
   const [tick, setTick] = useState(0);
   const [countdown, setCountdown] = useState(REFRESH_INTERVAL / 1000);
   const [alertTrend, setAlertTrend] = useState(generateAlertTrend);
@@ -97,18 +99,119 @@ export default function AnalyticsTab({ zones, alerts, volunteers, shelters, dete
   const [detectionTimeline, setDetectionTimeline] = useState(generateDetectionTimeline);
 
   const refreshAll = useCallback(() => {
-    setAlertTrend(generateAlertTrend()); setZoneRisk(generateZoneRisk(zones.length || 7));
-    setVolunteerData(generateVolunteerData()); setShelterData(generateShelterData());
-    setDetectionTimeline(generateDetectionTimeline()); setTick(t => t + 1); setCountdown(REFRESH_INTERVAL / 1000);
-  }, [zones.length]);
+    setTick(t => t + 1); setCountdown(REFRESH_INTERVAL / 1000);
+  }, []);
 
   useEffect(() => { const interval = setInterval(refreshAll, REFRESH_INTERVAL); return () => clearInterval(interval); }, [refreshAll]);
   useEffect(() => { const timer = setInterval(() => { setCountdown(c => (c <= 1 ? REFRESH_INTERVAL / 1000 : c - 1)); }, 1000); return () => clearInterval(timer); }, []);
 
-  const totalAlerts = alerts.length > 0 ? alerts.length : alertTrend.reduce((s, h) => s + h.critical + h.high + h.medium + h.low, 0);
-  const totalDeployed = volunteers.length > 0 ? volunteers.filter(v => v.status === 'deployed' || v.status === 'dispatched').length : volunteerData.reduce((s, v) => s + v.deployed, 0);
-  const totalAvailableBeds = shelters.length > 0 ? shelters.reduce((s, sh) => s + (sh.available_beds || 0), 0) : shelterData.reduce((s, sh) => s + sh.available, 0);
-  const totalDetections = detections.length > 0 ? detections.reduce((s, d) => s + (d.count || 0), 0) : detectionTimeline.reduce((s, d) => s + d.persons + d.vehicles, 0);
+  // Compute stats consistently from actual realtime data
+  const totalAlerts = alerts.length;
+  const totalDeployed = volunteers.filter(v => v.status === 'deployed' || v.status === 'dispatched').length;
+  const totalDetections = detections.reduce((s, d) => s + (d.count || 0), 0);
+
+  // Fetch sim shelters if simulation is active
+  const [simSheltersMap, setSimSheltersMap] = useState<Record<string, SimShelter[]>>({});
+  
+  useEffect(() => {
+    if (!sim?.zones || sim.zones.length === 0) return;
+    const fetchAllShelters = async () => {
+      const map: Record<string, SimShelter[]> = {};
+      for (const zone of sim.zones) {
+        try {
+          const res = await fetchSheltersNear(zone.id);
+          map[zone.id] = res;
+        } catch (e) {}
+      }
+      setSimSheltersMap(map);
+    };
+    fetchAllShelters();
+  }, [sim?.zones]);
+
+  const allSimShelters = useMemo(() => Object.values(simSheltersMap).flat(), [simSheltersMap]);
+  const uniqueSimShelters = useMemo(() => Array.from(new Map(allSimShelters.map(s => [s.shelter_id, s])).values()), [allSimShelters]);
+
+  const totalAvailableBeds = uniqueSimShelters.length > 0 
+    ? uniqueSimShelters.reduce((s, sh) => s + sh.available_capacity, 0)
+    : shelters.reduce((s, sh) => s + (sh.available_beds || 0), 0);
+
+  // Derive charts from real data (fallback to generated only if completely empty for visual demo)
+  const chartZoneRisk = (sim?.zones && sim.zones.length > 0)
+    ? sim.zones.map(z => {
+        const risk = z.damage_level * 100;
+        return { name: z.name?.split(' ')[0] || `Z-${z.id.substring(0,4)}`, risk, color: risk > 75 ? '#ff6464' : risk > 45 ? '#ffbd20' : '#3bce7f' };
+      }).sort((a, b) => b.risk - a.risk)
+    : zones.length > 0 
+      ? zones.map(z => {
+          const risk = z.risk_score || 0;
+          return { name: z.name?.split(' ')[0] || `Z-${z.id.substring(0,4)}`, risk, color: risk > 75 ? '#ff6464' : risk > 45 ? '#ffbd20' : '#3bce7f' };
+        }).sort((a, b) => b.risk - a.risk)
+      : zoneRisk;
+
+  const chartVolunteerData = (sim?.zones && sim.zones.length > 0)
+    ? sim.zones.map(z => {
+        const zVols = volunteers.filter(v => v.location === z.name || v.location?.includes(z.name || ''));
+        return {
+          zone: z.name?.split(' ')[0] || `Z-${z.id.substring(0,4)}`,
+          deployed: zVols.filter(v => v.status === 'deployed').length,
+          enroute: zVols.filter(v => v.status === 'dispatched' || v.status === 'en_route').length,
+          available: zVols.filter(v => v.status === 'available' || v.status === 'idle').length,
+        };
+      })
+    : zones.length > 0
+      ? zones.map(z => {
+          const zVols = volunteers.filter(v => v.location === z.name || v.location?.includes(z.name || ''));
+          return {
+            zone: z.name?.split(' ')[0] || `Z-${z.id.substring(0,4)}`,
+            deployed: zVols.filter(v => v.status === 'deployed').length,
+            enroute: zVols.filter(v => v.status === 'dispatched' || v.status === 'en_route').length,
+            available: zVols.filter(v => v.status === 'available' || v.status === 'idle').length,
+          };
+        })
+      : volunteerData;
+
+  const chartShelterData = uniqueSimShelters.length > 0
+    ? uniqueSimShelters.map(s => ({
+        name: s.name?.split(' ')[0] || `S-${s.shelter_id.substring(0,4)}`,
+        capacity: s.capacity,
+        occupied: s.capacity - s.available_capacity,
+        available: s.available_capacity
+      }))
+    : shelters.length > 0
+      ? shelters.map(s => ({
+          name: s.location?.split(' ')[0] || `S-${s.id.substring(0,4)}`,
+          capacity: s.capacity,
+          occupied: s.capacity - (s.available_beds || 0),
+          available: s.available_beds || 0
+        }))
+      : shelterData;
+
+  const chartAlertTrend = alerts.length > 0
+    ? (() => {
+        // Group alerts by hour simply
+        const hours: Record<string, any> = {};
+        alerts.forEach(a => {
+          const t = new Date(a.timestamp);
+          const h = `${t.getHours().toString().padStart(2, '0')}:00`;
+          if (!hours[h]) hours[h] = { time: h, critical: 0, high: 0, medium: 0, low: 0 };
+          if (a.severity in hours[h]) hours[h][a.severity]++;
+          else hours[h].critical++; // fallback
+        });
+        const res = Object.values(hours).sort((a,b) => a.time.localeCompare(b.time));
+        return res.length > 0 ? res : alertTrend;
+      })()
+    : alertTrend;
+
+  const chartDetectionTimeline = detections.length > 0
+    ? detections.map(d => {
+        const t = new Date(d.timestamp);
+        return {
+          time: `${t.getHours().toString().padStart(2, '0')}:${t.getMinutes().toString().padStart(2, '0')}`,
+          persons: d.count || 0,
+          vehicles: 0
+        };
+      }).slice(-12)
+    : detectionTimeline;
 
   return (
     <div className="space-y-6" id="analytics-page">
@@ -149,7 +252,7 @@ export default function AnalyticsTab({ zones, alerts, volunteers, shelters, dete
           </h3>
           <div className="h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={alertTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <AreaChart data={chartAlertTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="gradCritical" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#ff2d2d" stopOpacity={0.35} /><stop offset="95%" stopColor="#ff2d2d" stopOpacity={0} /></linearGradient>
                   <linearGradient id="gradHigh" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#ff9e9e" stopOpacity={0.3} /><stop offset="95%" stopColor="#ff9e9e" stopOpacity={0} /></linearGradient>
@@ -175,12 +278,12 @@ export default function AnalyticsTab({ zones, alerts, volunteers, shelters, dete
           <h3 className="text-base font-semibold text-surface-200 mb-4 flex items-center gap-2"><Zap className="w-4 h-4 text-warning-400" />Zone Risk Levels</h3>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={zoneRisk} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <BarChart data={chartZoneRisk} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
                 <XAxis dataKey="name" stroke="#64748b" fontSize={11} tickLine={false} />
                 <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} domain={[0, 100]} />
                 <RechartsTooltip contentStyle={darkTooltipStyle} formatter={(val) => [`${val}%`, 'Risk Score']} />
-                <Bar dataKey="risk" radius={[6, 6, 0, 0]} name="Risk Score">{zoneRisk.map((entry, i) => (<Cell key={i} fill={entry.color} />))}</Bar>
+                <Bar dataKey="risk" radius={[6, 6, 0, 0]} name="Risk Score">{chartZoneRisk.map((entry, i) => (<Cell key={i} fill={entry.color} />))}</Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -191,7 +294,7 @@ export default function AnalyticsTab({ zones, alerts, volunteers, shelters, dete
           <h3 className="text-base font-semibold text-surface-200 mb-4 flex items-center gap-2"><Users className="w-4 h-4 text-raksha-400" />Volunteer Deployment by Zone</h3>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={volunteerData} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+              <BarChart data={chartVolunteerData} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" horizontal={false} />
                 <XAxis type="number" stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
                 <YAxis dataKey="zone" type="category" stroke="#64748b" fontSize={11} tickLine={false} width={55} />
@@ -210,7 +313,7 @@ export default function AnalyticsTab({ zones, alerts, volunteers, shelters, dete
           <h3 className="text-base font-semibold text-surface-200 mb-4 flex items-center gap-2"><Shield className="w-4 h-4 text-safe-400" />Shelter Capacity</h3>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={shelterData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <BarChart data={chartShelterData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
                 <XAxis dataKey="name" stroke="#64748b" fontSize={11} tickLine={false} />
                 <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
@@ -228,7 +331,7 @@ export default function AnalyticsTab({ zones, alerts, volunteers, shelters, dete
           <h3 className="text-base font-semibold text-surface-200 mb-4 flex items-center gap-2"><Eye className="w-4 h-4 text-raksha-300" />YOLO Detection Timeline</h3>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={detectionTimeline} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <LineChart data={chartDetectionTimeline} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
                 <XAxis dataKey="time" stroke="#64748b" fontSize={11} tickLine={false} />
                 <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />

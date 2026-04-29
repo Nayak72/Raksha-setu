@@ -1,7 +1,7 @@
 <<<<<<< HEAD
 # 🛡️ RakshaSetu: AI-Driven Disaster Response System
 
-RakshaSetu is an advanced, real-time disaster management and emergency response platform. It leverages a state-of-the-art event-driven architecture, combining a multi-agent AI workflow (LangGraph + Local LLMs), real-time database triggers (Supabase), and live MQTT broadcasting to orchestrate complex disaster response scenarios.
+RakshaSetu is an advanced, real-time disaster management and emergency response platform. It leverages a state-of-the-art event-driven architecture, combining a multi-agent AI workflow (LangGraph + Local LLMs), real-time database triggers (Supabase), and live UDP broadcasting to orchestrate complex disaster response scenarios.
 
 ---
 
@@ -14,7 +14,7 @@ The frontend serves as the live command center for emergency operators.
 * **Live Map Visualization**: Uses `Leaflet` to plot critical zones, risk radii, shelters, and volunteer locations dynamically.
 * **Event-Driven UI**: Built with `Supabase Realtime`, allowing metrics, logs, and alerts to update instantly without HTTP polling.
 * **Agent Transparency Panel**: The `AgentLogsPanel` renders the live stream of thought, reasoning steps, and confidence scores from the AI agents as they process live disasters.
-* **MQTT WebSocket Client**: A built-in MQTT client connects to public or local brokers (e.g., `ws://test.mosquitto.org:8080/mqtt`) to visualize broadcasted emergency alerts.
+* **Network Monitor**: Real-time visualization of UDP broadcast status, Supabase connectivity, and backend health.
 
 ### 2. ⚙️ Backend Layer (FastAPI)
 A high-performance, fully async Python backend designed for non-blocking event processing.
@@ -79,10 +79,9 @@ SUPABASE_DB_NAME=postgres
 OLLAMA_BASE_URL=http://localhost:11434
 OLLAMA_MODEL=qwen2.5:7b
 
-# ── MQTT Broker ──
-MQTT_BROKER_HOST=test.mosquitto.org
-MQTT_BROKER_PORT=1883
-```
+# ── UDP Broadcast ──
+UDP_BROADCAST_IP=255.255.255.255
+UDP_BROADCAST_PORT=5005```
 
 ### 3. Database Migrations
 Go to your **Supabase Dashboard -> SQL Editor** and execute the SQL scripts found in the `migrations/` folder in order:
@@ -97,7 +96,7 @@ npm install
 
 # Optional: verify frontend environment variables in frontend/.env.local
 # NEXT_PUBLIC_API_URL=http://localhost:8001
-# NEXT_PUBLIC_MQTT_WS_URL=ws://test.mosquitto.org:8080/mqtt
+# NEXT_PUBLIC_SUPABASE_URL=...
 ```
 
 ---
@@ -124,7 +123,7 @@ cd frontend
 npm run dev
 ```
 
-Visit `http://localhost:3000` in your browser. The dashboard will connect to Supabase Realtime and the MQTT WebSocket.
+Visit `http://localhost:3000` in your browser. The dashboard will connect to Supabase Realtime and monitor the UDP broadcast network.
 
 ---
 

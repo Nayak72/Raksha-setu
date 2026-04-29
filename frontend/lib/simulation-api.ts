@@ -3,7 +3,7 @@
  * All endpoints match the backend contracts exactly.
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
 
 // ── Types ──────────────────────────────────────
 export type SimZone = {
@@ -78,6 +78,8 @@ export type SimPayload = {
   allocations: SimAllocation[];
   logs: SimLog[];
   routes: Record<string, SimRouteResult>;
+  yolo_results?: any[];
+  yolo_stats?: Record<string, any>;
 };
 
 // ── Fetchers ───────────────────────────────────

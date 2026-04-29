@@ -1,7 +1,7 @@
 """
 RakshaSetu — UDP Broadcast Sender
 
-Replaces MQTT with direct UDP broadcast for offline, LAN-based alert delivery.
+Direct UDP broadcast for offline, LAN-based alert delivery.
 All connected Android devices on the same WiFi/hotspot will receive alerts instantly.
 
 Usage:

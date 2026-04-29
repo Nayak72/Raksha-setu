@@ -1,1 +1,1 @@
-# Notifier Agent (MQTT)
+# Notifier Agent (UDP)

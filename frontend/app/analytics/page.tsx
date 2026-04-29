@@ -4,6 +4,7 @@
 'use client';
 
 import AppShell, { useRealtimeData } from '../AppShell';
+import { useSimulation } from '../../hooks/useSimulation';
 import LoadingPanel from '../../components/ui/LoadingPanel';
 import dynamic from 'next/dynamic';
 
@@ -14,6 +15,7 @@ const AnalyticsTab = dynamic(() => import('../../components/charts/AnalyticsTab'
 
 function AnalyticsContent() {
   const { zones, alerts, volunteers, shelters, detections } = useRealtimeData();
+  const sim = useSimulation();
 
   return (
     <div className="animate-fade-in">
@@ -23,6 +25,7 @@ function AnalyticsContent() {
         volunteers={volunteers.volunteers}
         shelters={shelters.shelters}
         detections={detections.detections}
+        sim={sim}
       />
     </div>
   );

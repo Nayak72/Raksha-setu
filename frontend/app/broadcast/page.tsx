@@ -24,7 +24,7 @@ function BroadcastContent() {
   });
 
   const isOnline = !!systemStatus.status && !systemStatus.error;
-  const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
 
   // Poll the broadcasts API for live data
   const fetchBroadcasts = useCallback(async () => {

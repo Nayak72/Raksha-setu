@@ -172,8 +172,8 @@ async def start_pg_listener() -> None:
     try:
         pool = await get_pg_pool()
     except (OSError, Exception) as exc:
-        logger.warning("pg_listener.connect_failed", error=str(exc),
-                        hint="PG listener disabled — API & MQTT still work fine")
+        logger.debug("pg_listener.connect_failed", error=str(exc),
+                        hint="PG listener disabled — API still works fine")
         _running = False
         return
 

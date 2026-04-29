@@ -139,7 +139,7 @@ export default function BroadcastStatus({
     setSending(true);
     setSendResult(null);
     try {
-      const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
       const res = await fetch(`${base}/api/v1/broadcast-manual`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -282,7 +282,7 @@ async def manual_broadcast(payload: ManualBroadcastPayload):
     }
 
 
-# ── WebSocket (includes broadcasts) ──────────────────
+# ── WebSocket (includes broadcasts & yolo) ─────────────
 
 @router.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
@@ -304,6 +304,11 @@ async def websocket_endpoint(websocket: WebSocket):
                         "devices_reached": state.devices_reached,
                         "recent_acks": len(state.broadcast_acks),
                     },
+                    "yolo_results": state.yolo_results[:10],
+                    "yolo_stats": {
+                        "scan_count": state.yolo_scan_count,
+                        "total_detections": state.yolo_total_detections,
+                    }
                 }
                 await websocket.send_json(payload)
                 last_cycle = state.cycle_count
@@ -312,3 +317,51 @@ async def websocket_endpoint(websocket: WebSocket):
         logger.info("WebSocket client disconnected")
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
+
+# ── YOLO Live API ────────────────────────────────────
+
+@router.get("/yolo/images")
+async def get_yolo_images(zone_id: Optional[str] = None):
+    """List available images in the Supabase bucket for YOLO inference."""
+    from app.services.yolo_service import list_zone_images, list_all_bucket_images
+    if zone_id:
+        return {"images": list_zone_images(zone_id)}
+    return {"images": list_all_bucket_images()}
+
+class SingleImageDetectPayload(BaseModel):
+    url: str
+    zone_id: str = "unknown"
+
+@router.post("/yolo/detect")
+async def detect_single(payload: SingleImageDetectPayload):
+    """Run YOLO on a specific image and get annotated results."""
+    from app.services.yolo_service import detect_single_image
+    result = detect_single_image(payload.url, payload.zone_id)
+
+    if "error" not in result:
+        # Track in state for WebSocket broadcast
+        state.yolo_results.insert(0, result)
+        state.yolo_results = state.yolo_results[:50]
+        state.yolo_scan_count += 1
+        state.yolo_total_detections += result.get("num_detections", 0)
+
+    return result
+
+class ZoneDetectPayload(BaseModel):
+    zone_id: str
+    max_images: int = 4
+
+@router.post("/yolo/detect-zone")
+async def detect_zone_images(payload: ZoneDetectPayload):
+    """Run YOLO on multiple images from a specific zone."""
+    from app.services.yolo_service import detect_zone
+    results = detect_zone(payload.zone_id, payload.max_images)
+
+    for res in results:
+        if "error" not in res:
+            state.yolo_results.insert(0, res)
+            state.yolo_scan_count += 1
+            state.yolo_total_detections += res.get("num_detections", 0)
+
+    state.yolo_results = state.yolo_results[:50]
+    return {"results": results}

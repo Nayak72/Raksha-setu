@@ -44,7 +44,7 @@ function DashboardContent() {
     devices_reached: 0,
   });
 
-  const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
 
   const fetchBroadcasts = useCallback(async () => {
     try {

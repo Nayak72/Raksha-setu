@@ -2,7 +2,7 @@
 FastAPI application factory with lifespan management.
 
 Wires up:
-  • UDP broadcast layer (replaces MQTT)
+  • UDP broadcast layer
   • Supabase Realtime listener
   • Structured logging
 """

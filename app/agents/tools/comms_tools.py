@@ -1,7 +1,7 @@
 """
 RakshaSetu — MCP Communications Tools
-LangChain tool interfaces for alert broadcasting (MQTT + Supabase) and
-acknowledgment tracking (acknowledgments table + MQTT).
+LangChain tool interfaces for alert broadcasting (UDP + Supabase) and
+acknowledgment tracking (acknowledgments table).
 
 Schema alignment:
   alerts          → zone_id TEXT FK, severity, message, topic,
@@ -13,7 +13,7 @@ import time
 import logging
 from langchain_core.tools import tool
 from app.db.supabase_client import get_supabase as get_supabase_client
-from app.mqtt.client import mqtt_manager as get_mqtt_manager
+from app.network.udp_sender import send_udp_broadcast
 
 logger = logging.getLogger("raksha.tools.comms")
 
@@ -22,12 +22,11 @@ logger = logging.getLogger("raksha.tools.comms")
 def broadcast_alert(zone_id: str, topic: str, message: str, severity: str = "MEDIUM") -> dict:
     """
     Broadcast an alert for a disaster zone.
-    Writes to the Supabase alerts table AND publishes to MQTT for real-time delivery.
+    Writes to the Supabase alerts table AND broadcasts via UDP for real-time delivery.
     Severity must be one of: LOW, MEDIUM, HIGH, CRITICAL.
     Use this tool when a zone needs an emergency alert broadcast.
     """
     try:
-        mqtt_mgr = get_mqtt_manager()
         client = get_supabase_client()
 
         # Normalize severity
@@ -52,22 +51,23 @@ def broadcast_alert(zone_id: str, topic: str, message: str, severity: str = "MED
         alert_id = db_record.get("id")
         db_persisted = alert_id is not None
 
-        # 2. Publish to MQTT for real-time delivery
-        mqtt_success = mqtt_mgr.publish_alert(
-            zone_id=zone_id,
-            topic=topic,
-            message=message,
-        )
+        # 2. Publish via UDP for real-time delivery
+        payload = {
+            "type": "alert",
+            "zone_id": zone_id,
+            "alert_id": alert_id,
+            "topic": topic,
+            "message": message,
+            "severity": severity,
+        }
+        udp_success = send_udp_broadcast(payload)
 
         # 3. Update delivery status
         if db_persisted:
-            status = "delivered" if mqtt_success else "sent"
+            status = "delivered" if udp_success else "sent"
             client.table("alerts").update(
                 {"delivery_status": status}
             ).eq("id", alert_id).execute()
-
-        # 4. Clear previous MQTT acks (new broadcast cycle)
-        mqtt_mgr.clear_acks(zone_id)
 
         return {
             "zone_id": zone_id,
@@ -75,9 +75,9 @@ def broadcast_alert(zone_id: str, topic: str, message: str, severity: str = "MED
             "topic": topic,
             "message": message,
             "severity": severity,
-            "mqtt_delivered": mqtt_success,
+            "udp_delivered": udp_success,
             "db_persisted": db_persisted,
-            "delivery_status": "delivered" if mqtt_success else "sent",
+            "delivery_status": "delivered" if udp_success else "sent",
             "timestamp": time.time(),
             "fallback": False,
         }
@@ -90,7 +90,7 @@ def broadcast_alert(zone_id: str, topic: str, message: str, severity: str = "MED
             "topic": topic,
             "message": message,
             "severity": severity,
-            "mqtt_delivered": False,
+            "udp_delivered": False,
             "db_persisted": False,
             "delivery_status": "failed",
             "timestamp": time.time(),
@@ -103,13 +103,11 @@ def broadcast_alert(zone_id: str, topic: str, message: str, severity: str = "MED
 def get_ack_status(zone_id: str) -> dict:
     """
     Check acknowledgment status for alerts sent to a zone.
-    Queries the acknowledgments table for the most recent alert in this zone,
-    and also checks the MQTT ack store for real-time acks.
+    Queries the acknowledgments table for the most recent alert in this zone.
     Use this tool to decide whether to retry broadcasting.
     """
     try:
         client = get_supabase_client()
-        mqtt_mgr = get_mqtt_manager()
 
         # 1. Find the most recent alert for this zone
         alert_resp = (
@@ -134,13 +132,10 @@ def get_ack_status(zone_id: str) -> dict:
             )
             db_ack_count = ack_resp.count or 0
 
-        # 3. Also check MQTT real-time acks
-        mqtt_ack_count = mqtt_mgr.get_ack_count(zone_id)
+        # 3. Total ack count (DB only now)
+        total_acks = db_ack_count
 
-        # 4. Total ack count (DB + MQTT, deduplicated by taking max)
-        total_acks = max(db_ack_count, mqtt_ack_count)
-
-        # 5. Estimate total recipients (all volunteers + shelters)
+        # 4. Estimate total recipients (all volunteers + shelters)
         vol_resp = (
             client.table("volunteers")
             .select("id", count="exact")
@@ -166,7 +161,6 @@ def get_ack_status(zone_id: str) -> dict:
             "retry_needed": ack_rate < 50.0,
             "current_retry_count": retry_count,
             "delivery_status": latest_alert.get("delivery_status", "unknown"),
-            "mqtt_connected": mqtt_mgr.is_connected,
             "fallback": False,
         }
 
@@ -181,7 +175,6 @@ def get_ack_status(zone_id: str) -> dict:
             "retry_needed": False,
             "current_retry_count": 0,
             "delivery_status": "error",
-            "mqtt_connected": False,
             "fallback": True,
             "error": str(e),
         }

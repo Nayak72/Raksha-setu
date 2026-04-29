@@ -4,6 +4,7 @@
 'use client';
 
 import AppShell, { useRealtimeData } from '../AppShell';
+import { useSimulation } from '../../hooks/useSimulation';
 import LoadingPanel from '../../components/ui/LoadingPanel';
 import dynamic from 'next/dynamic';
 
@@ -13,11 +14,12 @@ const YoloFeed = dynamic(() => import('../../components/yolo/YoloFeed'), {
 });
 
 function LiveYoloContent() {
-  const { zones, detections } = useRealtimeData();
+  const { zones } = useRealtimeData();
+  const sim = useSimulation();
 
   return (
     <div className="animate-fade-in">
-      <YoloFeed zones={zones.zones} detections={detections.detections} />
+      <YoloFeed zones={zones.zones} simZones={sim.zones} />
     </div>
   );
 }
@@ -29,3 +31,4 @@ export default function LiveYoloPage() {
     </AppShell>
   );
 }
+

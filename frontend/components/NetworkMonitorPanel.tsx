@@ -1,6 +1,6 @@
 /**
  * Network Monitor Panel — shows system connectivity status for UDP, Supabase, and PG Listener.
- * Replaces the old MQTT Client panel.
+ * Replaces the old connectivity panel.
  */
 'use client';
 

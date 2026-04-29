@@ -1,58 +1,112 @@
 /**
  * YOLO Live Feed — multi-camera grid with detection stats.
+ * Now using the real backend YOLO model (best.pt) on Supabase images.
  */
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
-import { Camera, Activity } from 'lucide-react';
-import { Zone, Detection } from '../../lib/supabase';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Camera, Activity, RefreshCw, AlertCircle } from 'lucide-react';
+import { Zone } from '../../lib/supabase';
+import { SimZone } from '../../lib/simulation-api';
 
-const SUPABASE_BUCKET = 'https://wcaggixrdosfkewalokc.supabase.co/storage/v1/object/public/Input%20Images';
-
-const ZONE_IMAGES = [
-  [`${SUPABASE_BUCKET}/Zone%201/free-photo-of-group-of-men-working-at-a-calamity.jpeg`, `${SUPABASE_BUCKET}/Zone%201/images-2.jpeg`, `${SUPABASE_BUCKET}/Zone%201/images-3.jpeg`, `${SUPABASE_BUCKET}/Zone%201/Syrians-in-rural-Idlib-and-Aleppo-search-for-people-still-trapped-under-the-rubble.-Photo-Local-source.jpeg`],
-  [`${SUPABASE_BUCKET}/Zone%202/150425094552-04-nepal-quake-0425.jpg`, `${SUPABASE_BUCKET}/Zone%202/gettyimages-472616228-640x640.jpg`, `${SUPABASE_BUCKET}/Zone%202/images-4.jpeg`, `${SUPABASE_BUCKET}/Zone%202/Nepal-Earthquake.jpeg`],
-  [`${SUPABASE_BUCKET}/Zone%203/Nepal-floods.jpg`, `${SUPABASE_BUCKET}/Zone%203/hq720.jpg`, `${SUPABASE_BUCKET}/Zone%203/ANI-20240806134943.jpg`, `${SUPABASE_BUCKET}/Zone%203/images-10.jpeg`],
-  [`${SUPABASE_BUCKET}/Zone%204/delhi-flood_668221551ab8b.jpg`, `${SUPABASE_BUCKET}/Zone%204/_107746111_gettyimages-1153321998.jpg`, `${SUPABASE_BUCKET}/Zone%204/india-monsoon-street-sq.jpg`, `${SUPABASE_BUCKET}/Zone%204/images-15.jpeg`],
-  [`${SUPABASE_BUCKET}/Zone%201/massive-earthquake-hit-myanmar-67e6a46c05b57-png__700.jpg`, `${SUPABASE_BUCKET}/Zone%202/Quake3.jpg`, `${SUPABASE_BUCKET}/Zone%203/maxresdefault.jpg`, `${SUPABASE_BUCKET}/Zone%204/5f48d4778b164.jpg`],
-];
-
-type BoundingBox = { id: number; x: number; y: number; w: number; h: number; conf: string; label: string };
-
-function generateBoxesForDetection(detectionId: string, count: number, imageIndex: number): BoundingBox[] {
-  let seed = Array.from(detectionId || "mock").reduce((acc, char) => acc + char.charCodeAt(0), 0) + imageIndex * 100;
-  const rnd = () => { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; };
-  const visualCount = Math.min(count || 0, 15);
-  return Array.from({ length: visualCount }).map((_, i) => ({
-    id: i, x: rnd() * 60 + 10, y: rnd() * 50 + 15, w: rnd() * 15 + 8, h: rnd() * 25 + 15,
-    conf: (rnd() * 0.2 + 0.75).toFixed(2), label: rnd() > 0.3 ? 'person' : 'vehicle',
-  }));
+interface YoloFeedProps {
+  zones: Zone[];
+  simZones?: SimZone[];
 }
 
-interface YoloFeedProps { zones: Zone[]; detections: Detection[] }
+interface YoloDetection {
+  class_id: number;
+  class_name: string;
+  confidence: number;
+  bbox: number[];
+  bbox_norm: { x: number; y: number; w: number; h: number };
+}
 
-export default function YoloFeed({ zones, detections }: YoloFeedProps) {
-  const [imageIdx, setImageIdx] = useState<Record<string, number>>({});
+interface YoloResult {
+  zone_id: string;
+  source_url: string;
+  image_name: string;
+  timestamp: string;
+  num_detections: number;
+  detections: YoloDetection[];
+  annotated_image: string; // base64
+  disaster_types: string[];
+  summary: Record<string, { count: number; avg_conf: number; max_conf: number }>;
+  error?: string;
+}
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setImageIdx(prev => {
-        const next = { ...prev };
-        zones.forEach(z => { next[z.id] = (next[z.id] || 0) + 1; });
-        return next;
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
+
+export default function YoloFeed({ zones, simZones = [] }: YoloFeedProps) {
+  const [results, setResults] = useState<Record<string, YoloResult>>({});
+  const [loading, setLoading] = useState<Record<string, boolean>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  
+  // Use simZones for rendering if available (they always have 7 consistent zones),
+  // fall back to Supabase zones
+  const displayZones = simZones.length > 0
+    ? simZones.map(z => ({ id: z.id, name: z.name }))
+    : zones.map(z => ({ id: z.id, name: z.name || `Zone ${z.id.slice(0, 8)}` }));
+
+  const fetchZoneDetection = useCallback(async (zoneId: string) => {
+    setLoading(prev => ({ ...prev, [zoneId]: true }));
+    setErrors(prev => ({ ...prev, [zoneId]: '' }));
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/yolo/detect-zone`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ zone_id: zoneId, max_images: 1 }),
       });
-    }, 5000);
-    return () => clearInterval(timer);
-  }, [zones]);
+      
+      if (!res.ok) {
+        setErrors(prev => ({ ...prev, [zoneId]: `HTTP ${res.status}` }));
+        return;
+      }
+      const data = await res.json();
+      
+      if (data.results && data.results.length > 0) {
+        const result = data.results[0];
+        // Only accept results that have a valid annotated image
+        if (result.annotated_image && !result.error) {
+          setResults(prev => ({ ...prev, [zoneId]: result }));
+        } else if (result.error) {
+          setErrors(prev => ({ ...prev, [zoneId]: result.error }));
+        } else {
+          setErrors(prev => ({ ...prev, [zoneId]: 'No annotated image returned' }));
+        }
+      } else {
+        setErrors(prev => ({ ...prev, [zoneId]: 'No images found in bucket for this zone' }));
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Connection failed';
+      setErrors(prev => ({ ...prev, [zoneId]: msg }));
+      console.error(`Failed to fetch YOLO for zone ${zoneId}:`, err);
+    } finally {
+      setLoading(prev => ({ ...prev, [zoneId]: false }));
+    }
+  }, []);
 
-  const latestDetectionsByZone = useMemo(() => {
-    const map = new Map<string, Detection>();
-    detections.forEach(d => { if (!map.has(d.zone_id)) map.set(d.zone_id, d); });
-    return map;
-  }, [detections]);
+  // Initial load and polling
+  useEffect(() => {
+    if (displayZones.length === 0) return;
+    
+    // Initial fetch for all zones (staggered)
+    displayZones.forEach((zone, i) => {
+      setTimeout(() => fetchZoneDetection(zone.id), i * 2000);
+    });
+    
+    // Poll every 15 seconds, staggered
+    const interval = setInterval(() => {
+      displayZones.forEach((zone, i) => {
+        setTimeout(() => fetchZoneDetection(zone.id), i * 2000);
+      });
+    }, 15000);
+    
+    return () => clearInterval(interval);
+  }, [displayZones.length, fetchZoneDetection]);
 
   return (
-    <div className="space-y-4" id="yolo-feed-page">
+    <div className="space-y-4 animate-fade-in" id="yolo-feed-page">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-danger-500/20 to-danger-700/20 border border-danger-500/30 flex items-center justify-center">
@@ -60,58 +114,86 @@ export default function YoloFeed({ zones, detections }: YoloFeedProps) {
           </div>
           <div>
             <h2 className="text-xl font-bold text-surface-50">Live YOLO Feed</h2>
-            <p className="text-xs text-surface-500">Real-time object detection stream linked to backend AI</p>
+            <p className="text-xs text-surface-500">Real-time object detection stream linked to backend AI (best.pt)</p>
           </div>
         </div>
         <div className="flex items-center gap-2 glass-panel px-3 py-2">
           <Activity className="w-4 h-4 text-safe-400 animate-pulse" />
-          <span className="text-xs font-mono text-surface-300">Listening to <span className="text-safe-400 font-bold ml-1">detections</span></span>
+          <span className="text-xs font-mono text-surface-300">
+            Scanning <span className="text-safe-400 font-bold ml-1">Live Detections</span>
+          </span>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {zones.map((zone, idx) => {
-          const det = latestDetectionsByZone.get(zone.id);
-          const images = ZONE_IMAGES[idx % ZONE_IMAGES.length];
-          const currentImage = images[(imageIdx[zone.id] || 0) % images.length];
-          const zoneBoxes = det ? generateBoxesForDetection(det.id, det.count, imageIdx[zone.id] || 0) : [];
-          const personCount = zoneBoxes.filter(b => b.label === 'person').length;
-          const vehicleCount = zoneBoxes.filter(b => b.label === 'vehicle').length;
-          const isStale = det ? (new Date().getTime() - new Date(det.timestamp).getTime() > 15000) : true;
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+        {displayZones.map((zone, idx) => {
+          const result = results[zone.id];
+          const isLoading = loading[zone.id];
+          const zoneError = errors[zone.id];
+          const hasValidImage = result?.annotated_image && !result?.error;
+          const isStale = result?.timestamp 
+            ? (new Date().getTime() - new Date(result.timestamp).getTime() > 30000) 
+            : true;
 
           return (
-            <div key={zone.id} className={`glass-panel p-3 flex flex-col gap-2 transition-all ${!isStale && det ? 'border-danger-500/50 shadow-[0_0_15px_rgba(239,68,68,0.15)]' : 'border-surface-700'}`}>
+            <div key={zone.id} className={`glass-panel p-3 flex flex-col gap-2 transition-all ${(hasValidImage && !isStale) ? 'border-danger-500/50 shadow-[0_0_15px_rgba(239,68,68,0.15)]' : 'border-surface-700'}`}>
               <div className="flex justify-between items-center px-1">
-                <span className="font-semibold text-surface-200">Zone {idx + 1}</span>
+                <span className="font-semibold text-surface-200">Zone {idx + 1} - {zone.name}</span>
                 <div className="flex items-center gap-3">
-                  {det && (
-                    <div className="flex items-center gap-2 text-[10px] font-mono">
-                      <span className="text-blue-400">{personCount} person{personCount !== 1 ? 's' : ''}</span>
-                      <span className="text-surface-600">|</span>
-                      <span className="text-red-400">{vehicleCount} vehicle{vehicleCount !== 1 ? 's' : ''}</span>
+                  {result && hasValidImage && (
+                    <div className="flex flex-wrap items-center gap-2 text-[10px] font-mono">
+                      {Object.entries(result.summary || {}).map(([cls, stat]) => (
+                         <span key={cls} className={cls.includes('struct') || cls.includes('fire') || cls.includes('flood') ? 'text-red-400' : 'text-blue-400'}>
+                           {stat.count} {cls}
+                         </span>
+                      ))}
                     </div>
                   )}
                   <div className="flex items-center gap-1">
-                    <span className="relative flex h-2 w-2">
-                      {!isStale && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-danger-400 opacity-75"></span>}
-                      <span className={`relative inline-flex rounded-full h-2 w-2 ${!isStale ? 'bg-danger-500' : 'bg-surface-500'}`}></span>
-                    </span>
-                    <span className="text-xs text-surface-400">{!isStale ? 'Active' : 'Idle'}</span>
+                    {isLoading ? (
+                      <RefreshCw className="w-3 h-3 text-surface-400 animate-spin" />
+                    ) : (
+                      <span className="relative flex h-2 w-2">
+                        {hasValidImage && !isStale && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-danger-400 opacity-75"></span>}
+                        <span className={`relative inline-flex rounded-full h-2 w-2 ${hasValidImage && !isStale ? 'bg-danger-500' : zoneError ? 'bg-warning-500' : 'bg-surface-500'}`}></span>
+                      </span>
+                    )}
+                    <span className="text-xs text-surface-400">{isLoading ? 'Scanning' : (hasValidImage && !isStale ? 'Active' : 'Idle')}</span>
                   </div>
                 </div>
               </div>
-              <div className="relative rounded-lg overflow-hidden border border-surface-700 bg-surface-900" style={{ aspectRatio: '16/10' }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={currentImage} alt={`Zone ${idx + 1}`} className={`w-full h-full object-cover transition-opacity duration-300 ${!isStale ? 'opacity-90' : 'opacity-40 grayscale-[50%]'}`} crossOrigin="anonymous" loading="eager" />
-                {!isStale && zoneBoxes.map((box) => (
-                  <div key={box.id} className={`absolute border-2 ${box.label === 'person' ? 'border-blue-500' : 'border-red-500'} bg-black/10`} style={{ left: `${box.x}%`, top: `${box.y}%`, width: `${box.w}%`, height: `${box.h}%`, transition: 'all 0.2s ease-out' }}>
-                    <span className={`absolute -top-5 left-0 text-[10px] px-1 font-mono text-white ${box.label === 'person' ? 'bg-blue-600' : 'bg-red-600'}`}>{box.label} {box.conf}</span>
+              
+              <div className="relative rounded-lg overflow-hidden border border-surface-700 bg-surface-900 flex items-center justify-center" style={{ aspectRatio: '16/10' }}>
+                {hasValidImage ? (
+                  <>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img 
+                      src={result.annotated_image} 
+                      alt={`Detections for ${zone.name}`} 
+                      className={`w-full h-full object-contain transition-opacity duration-300 ${!isStale ? 'opacity-100' : 'opacity-70 grayscale-[30%]'}`} 
+                    />
+                    <div className="absolute bottom-1 right-1 bg-black/60 px-2 py-0.5 rounded text-[9px] font-mono text-surface-300 flex flex-col items-end">
+                      {result.timestamp ? new Date(result.timestamp).toLocaleTimeString() : '—'}
+                      <span className="text-[8px] text-surface-500">{result.image_name || 'inference'}</span>
+                    </div>
+                    <div className="absolute top-1 left-1 bg-black/60 px-2 py-0.5 rounded text-[9px] font-bold text-safe-400">
+                      {result.num_detections} detection{result.num_detections !== 1 ? 's' : ''}
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex flex-col items-center justify-center text-surface-500 gap-2 p-4">
+                    {isLoading ? (
+                       <RefreshCw className="w-6 h-6 animate-spin text-surface-400" />
+                    ) : zoneError ? (
+                       <AlertCircle className="w-6 h-6 text-warning-400 opacity-60" />
+                    ) : (
+                       <Camera className="w-8 h-8 opacity-20" />
+                    )}
+                    <span className="text-xs font-mono text-center">
+                      {isLoading ? 'Running YOLO Inference...' : zoneError ? zoneError : 'Waiting for Feed...'}
+                    </span>
                   </div>
-                ))}
-                <div className="absolute bottom-1 right-1 bg-black/60 px-2 py-0.5 rounded text-[9px] font-mono text-surface-300 flex flex-col items-end">
-                  {det ? new Date(det.timestamp).toLocaleTimeString() : 'No Detections'}
-                  {det && <span className="text-[8px] text-surface-500">ID: {det.id.split('-')[0]}</span>}
-                </div>
+                )}
               </div>
             </div>
           );
@@ -120,3 +202,4 @@ export default function YoloFeed({ zones, detections }: YoloFeedProps) {
     </div>
   );
 }
+

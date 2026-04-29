@@ -72,7 +72,7 @@ class Volunteer:
 
 @dataclass
 class Alert:
-    """Notification alert sent via MQTT or dashboard."""
+    """Notification alert sent via UDP broadcast or dashboard."""
     id: Optional[int] = None
     zone_id: str = ""
     severity: str = "LOW"  # LOW, MEDIUM, HIGH, CRITICAL

@@ -2,7 +2,7 @@
  * Centralized API layer for all backend calls.
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001';
 
 export async function fetchAgentLogs() {
   const res = await fetch(`${API_BASE}/api/v1/agent-logs`);
