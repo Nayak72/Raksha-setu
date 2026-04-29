@@ -14,31 +14,29 @@ from app.services.state import state
 
 # ── Fixed disaster zone definitions ────────────────────────────────
 # Each entry: (name, lat, lng, disaster_type, base_population)
+# 7 zones covering all disaster-prone regions of Coastal Karnataka
 KARNATAKA_DISASTER_ZONES = [
+    # id, name, lat, lng, disaster_type, base_population
     # Mangalore region — flood-prone coastal area
-    ("Mangalore-Netravathi Flood Zone", 12.8698, 74.8431, "flood", 8500),
-    ("Mangalore-Surathkal Storm Zone",  12.9854, 74.7936, "storm", 6200),
-    ("Mangalore-Ullal Cyclone Zone",    12.8074, 74.8560, "cyclone", 7100),
+    ("11111111-1111-4111-8111-111111111111", "Mangalore Coastal Flood Zone",      12.8698, 74.8431, "flood",     8500),
 
-    # Udupi region — cyclone and flood corridors
-    ("Udupi-Malpe Cyclone Zone",        13.3500, 74.7069, "cyclone", 5400),
-    ("Udupi-Brahmavar Flood Zone",      13.4245, 74.7480, "flood", 4800),
+    # Udupi region — cyclone corridor
+    ("22222222-2222-4222-8222-222222222222", "Udupi-Malpe Cyclone Zone",          13.3500, 74.7069, "cyclone",   5400),
 
-    # Karwar region — storm surge and cyclone belt
-    ("Karwar-Port Storm Surge Zone",    14.8024, 74.1293, "storm", 6800),
-    ("Karwar-Ankola Cyclone Zone",      14.6600, 74.3039, "cyclone", 3900),
+    # Karwar region — storm surge belt
+    ("33333333-3333-4333-8333-333333333333", "Karwar Storm Surge Zone",           14.8024, 74.1293, "storm",     6800),
 
-    # Chikkamagaluru — landslide-prone hilly terrain (minimum 5 zones)
-    ("Chikkamagaluru-Mudigere Landslide", 13.1325, 75.6404, "landslide", 3200),
-    ("Chikkamagaluru-Sringeri Landslide", 13.4186, 75.2590, "landslide", 2800),
-    ("Chikkamagaluru-Kalasa Landslide",   13.2401, 75.3765, "landslide", 2500),
-    ("Chikkamagaluru-Koppa Landslide",    13.5384, 75.3570, "landslide", 3600),
-    ("Chikkamagaluru-Aldur Landslide",    13.4700, 75.5930, "landslide", 2100),
+    # Chikkamagaluru — landslide-prone hilly terrain
+    ("44444444-4444-4444-8444-444444444444", "Chikkamagaluru Landslide Zone",     13.1325, 75.6404, "landslide", 3200),
 
-    # Dakshina Kannada — mixed flood/storm
-    ("DK-Puttur Flood Zone",             12.7590, 75.2039, "flood", 5100),
-    ("DK-Bantwal Storm Zone",            12.8917, 75.0264, "storm", 4300),
-    ("DK-Belthangady Landslide Zone",    12.9700, 75.3000, "landslide", 3000),
+    # Dakshina Kannada — flood/storm mix
+    ("55555555-5555-4555-8555-555555555555", "DK-Puttur Flood Zone",             12.7590, 75.2039, "flood",     5100),
+
+    # Uttara Kannada inland — cyclone risk
+    ("66666666-6666-4666-8666-666666666666", "Ankola Cyclone Zone",              14.6600, 74.3039, "cyclone",   3900),
+
+    # Shimoga/Shivamogga — landslide corridor
+    ("77777777-7777-4777-8777-777777777777", "Sringeri Landslide Zone",          13.4186, 75.2590, "landslide", 2800),
 ]
 
 
@@ -56,13 +54,13 @@ def _compute_severity(damage: float, alerts: int) -> str:
 def init_zones():
     """Create fixed disaster zones across coastal Karnataka."""
     state.zones = []
-    for name, lat, lng, disaster_type, population in KARNATAKA_DISASTER_ZONES:
+    for zid, name, lat, lng, disaster_type, population in KARNATAKA_DISASTER_ZONES:
         damage = round(random.uniform(0.1, 0.9), 2)
         alerts = random.randint(0, 20)
         severity = _compute_severity(damage, alerts)
 
         state.zones.append({
-            "id": str(uuid.uuid4()),
+            "id": zid,
             "name": name,
             "lat": lat,
             "lng": lng,

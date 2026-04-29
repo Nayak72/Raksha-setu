@@ -64,8 +64,8 @@ function EvacuationTracker({
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <Users size={14} className={severityColor} />
-                  <span className="text-xs font-mono text-surface-400">
-                    {zone.id.slice(0, 8)}
+                  <span className="text-xs text-surface-200 font-medium truncate" title={zone.name}>
+                    {zone.name}
                   </span>
                   <span className={`text-[10px] font-bold uppercase ${severityColor}`}>
                     {zone.severity}

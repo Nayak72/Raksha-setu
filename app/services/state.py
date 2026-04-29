@@ -10,4 +10,10 @@ class GlobalState:
         self.routes: Dict[str, Any] = {} # zone_id -> routes
         self.cycle_count = 0
 
+        # ── Broadcast tracking ──────────────────────
+        self.broadcasts: List[Dict[str, Any]] = []   # Recent UDP broadcast records
+        self.broadcast_count: int = 0                 # Total broadcasts sent
+        self.broadcast_acks: List[Dict[str, Any]] = []  # Device acknowledgments
+        self.devices_reached: int = 0                 # Unique devices that ACK'd
+
 state = GlobalState()

@@ -1,10 +1,18 @@
 """
 Agent decision pipeline — 6 named agents that each produce structured logs.
+Includes UDP broadcast integration for Android alert delivery.
 """
+
+import uuid
+import logging
+from datetime import datetime, timezone
 
 from app.services.state import state
 from app.services.logs import record_log
 from app.services.shelters import get_shelters_near
+from app.network.udp_sender import send_udp_broadcast
+
+logger = logging.getLogger(__name__)
 
 
 def run_agent_decisions():
@@ -213,3 +221,91 @@ def run_agent_decisions():
             outcome=f"Feedback loop reports {fb_status.replace('_', ' ')} at {evac_pct}%.",
             reasoning=fb_reasoning,
         )
+
+        # ── 7. Notifier Agent — UDP Broadcast to Android ────────
+        # Only broadcast for zones with severity >= medium
+        if final_severity in ("medium", "high", "critical"):
+            alert_id = str(uuid.uuid4())
+            now_iso = datetime.now(timezone.utc).isoformat()
+
+            # Build message based on severity
+            if final_severity == "critical":
+                alert_message = (
+                    f"🚨 CRITICAL ALERT: {zone['name']} — "
+                    f"Damage {int(damage * 100)}%, {alerts} active alerts. "
+                    f"EVACUATE IMMEDIATELY. Move to nearest shelter."
+                )
+            elif final_severity == "high":
+                alert_message = (
+                    f"⚠️ HIGH ALERT: {zone['name']} — "
+                    f"Damage {int(damage * 100)}%, {alerts} active alerts. "
+                    f"Prepare for evacuation. Stay alert."
+                )
+            else:
+                alert_message = (
+                    f"ℹ️ ADVISORY: {zone['name']} — "
+                    f"Damage {int(damage * 100)}%, {alerts} active alerts. "
+                    f"Monitor conditions and stay prepared."
+                )
+
+            # Construct the UDP payload matching Android app's expected format
+            udp_payload = {
+                "type": "ALERT",
+                "alert_id": alert_id,
+                "zone": zone["id"],
+                "zone_name": zone["name"],
+                "severity": final_severity.upper(),
+                "message": alert_message,
+                "disaster_type": zone.get("disaster_type", "unknown"),
+                "damage_level": damage,
+                "population": pop,
+                "affected_population": zone.get("affected_population", 0),
+                "lat": zone.get("lat", 0),
+                "lng": zone.get("lng", 0),
+                "timestamp": now_iso,
+            }
+
+            # Fire the UDP broadcast
+            broadcast_success = send_udp_broadcast(udp_payload)
+
+            # Track the broadcast in global state for the dashboard
+            broadcast_record = {
+                "id": alert_id,
+                "zone_id": zone["id"],
+                "zone_name": zone["name"],
+                "severity": final_severity,
+                "message": alert_message,
+                "success": broadcast_success,
+                "timestamp": now_iso,
+                "cycle": state.cycle_count,
+            }
+            state.broadcasts.insert(0, broadcast_record)
+            # Keep only last 50 broadcasts
+            state.broadcasts = state.broadcasts[:50]
+            state.broadcast_count += 1
+
+            notifier_reasoning = (
+                f"Notifier Agent evaluated zone severity '{final_severity}' and "
+                f"{'successfully broadcast' if broadcast_success else 'FAILED to broadcast'} "
+                f"UDP alert to all Android devices on LAN (port 5005). "
+                f"Alert ID: {alert_id[:8]}..."
+            )
+
+            record_log(
+                agent_name="Notifier Agent",
+                zone_id=zone["id"],
+                input_data={
+                    "severity": final_severity,
+                    "damage": damage,
+                    "alerts": alerts,
+                    "broadcast_port": 5005,
+                },
+                parameters_used={"broadcast_ip": "255.255.255.255", "port": 5005},
+                thresholds_checked=[
+                    {"parameter": "severity", "value": final_severity,
+                     "threshold": "medium", "exceeded": final_severity != "low"},
+                ],
+                decision=f"UDP broadcast: {'sent' if broadcast_success else 'failed'}",
+                outcome=f"Alert broadcast to Android devices — {final_severity.upper()} severity.",
+                reasoning=notifier_reasoning,
+            )

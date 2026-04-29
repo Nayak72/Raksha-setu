@@ -1,74 +1,72 @@
 """
 RakshaSetu — Notifier Agent Tools
-Tool functions for MQTT broadcasting and ACK management.
+Tool functions for UDP broadcasting and ACK management.
 """
 
 import json
 from langchain_core.tools import tool
-from app.agents.notifier.mqtt_client import MQTTPublisher
-from app.agents.notifier.ack_manager import ACKManager
-
-# Lazy-initialized instances
-_publisher = None
-_ack_manager = None
-
-
-def _get_publisher():
-    global _publisher
-    if _publisher is None:
-        _publisher = MQTTPublisher()
-    return _publisher
-
-
-def _get_ack_manager():
-    global _ack_manager
-    if _ack_manager is None:
-        _ack_manager = ACKManager()
-    return _ack_manager
+from app.network.udp_sender import send_udp_broadcast
 
 
 @tool
-def broadcast_alert(topic: str, message: str, qos: int = 0) -> str:
+def broadcast_alert(zone_id: str, message: str, severity: str = "medium") -> str:
     """
-    Broadcast an alert message via MQTT.
+    Broadcast an alert message via UDP to all Android devices on the LAN.
 
     Args:
-        topic: MQTT topic (e.g., 'alerts/zone/zone_001', 'alerts/global')
-        message: Alert message (JSON string)
-        qos: Quality of Service level (0, 1, or 2)
+        zone_id: Zone identifier
+        message: Alert message content
+        severity: Alert severity (low, medium, high, critical)
 
     Returns:
-        JSON with publication status.
+        JSON with broadcast status.
     """
-    publisher = _get_publisher()
-    success = publisher.publish(topic, message, qos=qos)
+    payload = {
+        "type": "ALERT",
+        "zone": zone_id,
+        "message": message,
+        "severity": severity.upper(),
+    }
+    success = send_udp_broadcast(payload)
     return json.dumps({
-        "topic": topic,
+        "zone": zone_id,
         "status": "sent" if success else "failed",
-        "qos": qos,
+        "channel": "udp_broadcast",
+        "severity": severity,
     })
 
 
 @tool
 def get_ack_status(alert_id: str) -> str:
     """
-    Check the acknowledgement status of a specific alert.
+    Check the acknowledgement status of a specific alert from the simulation state.
 
     Args:
         alert_id: The alert ID to check.
 
     Returns:
-        JSON with ACK status (acked, pending, or unknown).
+        JSON with ACK status.
     """
-    ack_manager = _get_ack_manager()
-    status = ack_manager.get_status(alert_id)
-    return json.dumps(status)
+    from app.services.state import state
+    matching_acks = [a for a in state.broadcast_acks if a.get("alert_id") == alert_id]
+    if matching_acks:
+        return json.dumps({
+            "alert_id": alert_id,
+            "status": "acked",
+            "ack_count": len(matching_acks),
+            "devices": [a["device_id"] for a in matching_acks],
+        })
+    return json.dumps({
+        "alert_id": alert_id,
+        "status": "pending",
+        "ack_count": 0,
+    })
 
 
 @tool
 def retry_broadcast(alert_id: str) -> str:
     """
-    Manually retry broadcasting an unacknowledged alert.
+    Retry broadcasting an unacknowledged alert via UDP.
 
     Args:
         alert_id: The alert ID to retry.
@@ -76,21 +74,32 @@ def retry_broadcast(alert_id: str) -> str:
     Returns:
         JSON with retry result.
     """
-    ack_manager = _get_ack_manager()
-    status = ack_manager.get_status(alert_id)
+    from app.services.state import state
 
-    if status["status"] == "acked":
-        return json.dumps({"alert_id": alert_id, "result": "already_acked"})
+    # Find the original broadcast
+    broadcast = next((b for b in state.broadcasts if b.get("id") == alert_id), None)
+    if not broadcast:
+        return json.dumps({"alert_id": alert_id, "result": "not_found"})
 
-    if status["status"] == "pending":
-        # In production, would re-publish the original message
-        return json.dumps({
-            "alert_id": alert_id,
-            "result": "retry_scheduled",
-            "retries_so_far": status.get("retries", 0),
-        })
+    # Check if already acknowledged
+    acks = [a for a in state.broadcast_acks if a.get("alert_id") == alert_id]
+    if acks:
+        return json.dumps({"alert_id": alert_id, "result": "already_acked", "ack_count": len(acks)})
 
-    return json.dumps({"alert_id": alert_id, "result": "not_found"})
+    # Retry the broadcast
+    payload = {
+        "type": "ALERT",
+        "alert_id": alert_id,
+        "zone": broadcast.get("zone_id", "unknown"),
+        "severity": broadcast.get("severity", "medium").upper(),
+        "message": broadcast.get("message", "Retry alert"),
+    }
+    success = send_udp_broadcast(payload)
+
+    return json.dumps({
+        "alert_id": alert_id,
+        "result": "retry_sent" if success else "retry_failed",
+    })
 
 
 # Tool list for the Notifier Agent

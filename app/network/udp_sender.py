@@ -17,7 +17,7 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 # Default UDP broadcast configuration
-UDP_BROADCAST_IP = "255.255.255.255"
+UDP_BROADCAST_IP = "<broadcast>"
 UDP_BROADCAST_PORT = 5005
 
 
@@ -56,13 +56,15 @@ def send_udp_broadcast(
     sock = None
     try:
         # Inject server IP so the Android app knows the ACK endpoint
-        payload["server_ip"] = _get_local_ip()
+        local_ip = _get_local_ip()
+        payload["server_ip"] = local_ip
 
         message = json.dumps(payload).encode("utf-8")
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        sock.sendto(message, (broadcast_ip, port))
+        sock.bind((local_ip, 0)) # Ensure Windows routes broadcast out the correct interface
+        sock.sendto(message, ("255.255.255.255", port))
 
         logger.info(
             f"UDP broadcast sent to {broadcast_ip}:{port} "

@@ -6,7 +6,7 @@ Shelters are placed:
   • OUTSIDE the immediate disaster epicenter
   • At logically safe but accessible locations (schools, stadiums, community halls)
 
-Each zone is assigned 2–5 nearby shelters.
+Each zone is assigned 2–4 nearby shelters.
 """
 import uuid
 import math
@@ -14,70 +14,63 @@ from app.services.state import state
 
 
 # ── Pre-defined shelter locations near Karnataka coastal disaster zones ──
-# (name, lat, lng, base_capacity, assigned_zone_indices)
+# (name, lat, lng, base_capacity)
 #
 # Zone indices reference KARNATAKA_DISASTER_ZONES order in zones.py:
-#   0-2: Mangalore   3-4: Udupi   5-6: Karwar
-#   7-11: Chikkamagaluru   12-14: DK
+#   0: Mangalore Coastal Flood Zone
+#   1: Udupi-Malpe Cyclone Zone
+#   2: Karwar Storm Surge Zone
+#   3: Chikkamagaluru Landslide Zone
+#   4: DK-Puttur Flood Zone
+#   5: Ankola Cyclone Zone
+#   6: Sringeri Landslide Zone
 
 KARNATAKA_SHELTERS = [
-    # --- Mangalore region shelters (serve zones 0,1,2) ---
-    ("Mangalore Town Hall",              12.8750, 74.8800, 1200),
-    ("Surathkal Community Center",       12.9950, 74.8150, 800),
-    ("Kadri Park Relief Camp",           12.8830, 74.8700, 950),
-    ("Ullal High School Shelter",        12.8200, 74.8700, 700),
-    ("Mangalore University Auditorium",  12.9100, 74.8000, 1500),
-    ("Bejai Stadium Camp",               12.8920, 74.8500, 1100),
+    # --- Mangalore region shelters (serve zone 0) ---
+    ("Mangalore Town Hall",              12.8750, 74.8800, 1200),   # 0
+    ("Kadri Park Relief Camp",           12.8830, 74.8700, 950),    # 1
+    ("Mangalore University Auditorium",  12.9100, 74.8000, 1500),   # 2
+    ("Bejai Stadium Camp",               12.8920, 74.8500, 1100),   # 3
 
-    # --- Udupi region shelters (serve zones 3,4) ---
-    ("Udupi Town Hall",                  13.3400, 74.7400, 900),
-    ("Manipal Convention Center",        13.3520, 74.7900, 1400),
-    ("Malpe Community Hall",             13.3630, 74.7200, 600),
-    ("Brahmavar Govt School",            13.4300, 74.7700, 750),
-    ("Kundapura Relief Shelter",         13.6210, 74.6920, 850),
+    # --- Udupi region shelters (serve zone 1) ---
+    ("Udupi Town Hall",                  13.3400, 74.7400, 900),    # 4
+    ("Manipal Convention Center",        13.3520, 74.7900, 1400),   # 5
+    ("Malpe Community Hall",             13.3630, 74.7200, 600),    # 6
 
-    # --- Karwar region shelters (serve zones 5,6) ---
-    ("Karwar Stadium Relief Camp",       14.8100, 74.1500, 1000),
-    ("Ankola High School Shelter",       14.6700, 74.3200, 650),
-    ("Kumta Community Center",           14.4280, 74.4100, 800),
-    ("Karwar Navy Ground Camp",          14.7900, 74.1100, 1200),
+    # --- Karwar region shelters (serve zone 2) ---
+    ("Karwar Stadium Relief Camp",       14.8100, 74.1500, 1000),   # 7
+    ("Karwar Navy Ground Camp",          14.7900, 74.1100, 1200),   # 8
+    ("Kumta Community Center",           14.4280, 74.4100, 800),    # 9
 
-    # --- Chikkamagaluru shelters (serve zones 7-11) ---
-    ("Mudigere Govt College",            13.1400, 75.6100, 500),
-    ("Sringeri Community Hall",          13.4250, 75.2300, 450),
-    ("Kalasa Temple Complex Shelter",    13.2500, 75.3500, 400),
-    ("Koppa Relief Camp",                13.5450, 75.3400, 550),
-    ("Aldur Panchayat Hall",             13.4800, 75.5700, 350),
-    ("Chikkamagaluru Town Hall",         13.3161, 75.7720, 1100),
-    ("NR Pura High School",              13.2000, 75.5200, 400),
-    ("Birur Relief Center",              13.5970, 75.9690, 700),
+    # --- Chikkamagaluru shelters (serve zone 3) ---
+    ("Mudigere Govt College",            13.1400, 75.6100, 500),    # 10
+    ("Chikkamagaluru Town Hall",         13.3161, 75.7720, 1100),   # 11
+    ("NR Pura High School",              13.2000, 75.5200, 400),    # 12
 
-    # --- Dakshina Kannada shelters (serve zones 12-14) ---
-    ("Puttur Town Hall",                 12.7650, 75.2200, 750),
-    ("Bantwal Community Center",         12.8980, 75.0400, 600),
-    ("Belthangady Govt School",          12.9800, 75.3200, 500),
-    ("Sullia Relief Center",             12.5600, 75.3900, 650),
-    ("Vitla Community Hall",             12.7700, 75.1100, 550),
+    # --- DK-Puttur shelters (serve zone 4) ---
+    ("Puttur Town Hall",                 12.7650, 75.2200, 750),    # 13
+    ("Vitla Community Hall",             12.7700, 75.1100, 550),    # 14
+    ("Sullia Relief Center",             12.5600, 75.3900, 650),    # 15
+
+    # --- Ankola shelters (serve zone 5) ---
+    ("Ankola High School Shelter",       14.6700, 74.3200, 650),    # 16
+    ("Kumta Relief Hall",                14.4300, 74.4200, 700),    # 17
+
+    # --- Sringeri shelters (serve zone 6) ---
+    ("Sringeri Community Hall",          13.4250, 75.2300, 450),    # 18
+    ("Kalasa Temple Complex Shelter",    13.2500, 75.3500, 400),    # 19
+    ("Koppa Relief Camp",                13.5450, 75.3400, 550),    # 20
 ]
 
 # Zone → Shelter mapping (zone_index → list of shelter_indices)
-# Ensures 2-5 shelters per zone within realistic distance
 ZONE_SHELTER_MAP = {
-    0:  [0, 2, 4, 5],         # Mangalore-Netravathi → Town Hall, Kadri, Univ, Bejai
-    1:  [1, 4, 0],            # Mangalore-Surathkal → Surathkal CC, Univ, Town Hall
-    2:  [3, 5, 0, 2],         # Mangalore-Ullal → Ullal HS, Bejai, Town Hall, Kadri
-    3:  [6, 8, 7],            # Udupi-Malpe → Town Hall, Malpe CH, Manipal
-    4:  [9, 7, 6, 10],        # Udupi-Brahmavar → Brahmavar, Manipal, TH, Kundapura
-    5:  [11, 14, 13],         # Karwar-Port → Stadium, Navy, Kumta
-    6:  [12, 13, 11],         # Karwar-Ankola → Ankola HS, Kumta, Stadium
-    7:  [15, 21, 16],         # Chikkamagaluru-Mudigere → Mudigere, NR Pura, Sringeri
-    8:  [16, 17, 20],         # Chikkamagaluru-Sringeri → Sringeri, Kalasa, CKM TH
-    9:  [17, 16, 20],         # Chikkamagaluru-Kalasa → Kalasa, Sringeri, CKM TH
-    10: [18, 20, 22],         # Chikkamagaluru-Koppa → Koppa, CKM TH, Birur
-    11: [19, 20, 15],         # Chikkamagaluru-Aldur → Aldur, CKM TH, Mudigere
-    12: [23, 27, 24],         # DK-Puttur → Puttur TH, Vitla, Bantwal
-    13: [24, 27, 23],         # DK-Bantwal → Bantwal CC, Vitla, Puttur
-    14: [25, 26, 24],         # DK-Belthangady → Belthangady, Sullia, Bantwal
+    0: [0, 1, 2, 3],           # Mangalore Coastal Flood → Town Hall, Kadri, Univ, Bejai
+    1: [4, 5, 6],              # Udupi-Malpe Cyclone → Udupi TH, Manipal, Malpe
+    2: [7, 8, 9],              # Karwar Storm Surge → Stadium, Navy, Kumta
+    3: [10, 11, 12],           # Chikkamagaluru Landslide → Mudigere, CKM TH, NR Pura
+    4: [13, 14, 15],           # DK-Puttur Flood → Puttur TH, Vitla, Sullia
+    5: [16, 17],               # Ankola Cyclone → Ankola HS, Kumta
+    6: [18, 19, 20],           # Sringeri Landslide → Sringeri, Kalasa, Koppa
 }
 
 

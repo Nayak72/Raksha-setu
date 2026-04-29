@@ -1,11 +1,12 @@
 """
 RakshaSetu Phase 4 — Notifier Agent (LangGraph Node)
-Enhanced with routing_decision, retry self-loop, and execution trace.
+Enhanced with UDP broadcast delivery, routing_decision, retry self-loop,
+and execution trace.
 
 Decision Logic:
-  LOW → dashboard only (no MQTT)
-  MEDIUM → publish to alerts/zone/{zone_id}
-  CRITICAL → publish to alerts/global + alerts/critical + repeated broadcast
+  LOW → dashboard only (no broadcast)
+  MEDIUM → UDP broadcast to zone devices
+  CRITICAL → UDP broadcast with repeated delivery + FCM push
 
 Routing decisions:
   delivered     → feedback (check response effectiveness)
@@ -15,14 +16,15 @@ Routing decisions:
 
 
 import logging
-import requests
+import uuid
+from datetime import datetime, timezone
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from app.shared.state import AgentState
 from app.shared.utils import get_llm, from_json
 from app.shared.tracer import trace_entry, trace_exit
 from app.agents.notifier.prompts import NOTIFIER_SYSTEM_PROMPT
-from app.db.connection import execute_query
+from app.network.udp_sender import send_udp_broadcast
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +32,7 @@ logger = logging.getLogger(__name__)
 def notifier_node(state: AgentState) -> dict:
     """
     LangGraph node: Notifier Agent.
-    Reads zone_analysis + resource_plan, broadcasts alerts via MQTT.
+    Reads zone_analysis + resource_plan, broadcasts alerts via UDP to Android devices.
     Returns routing_decision for non-linear graph.
     """
     zone_id = state["zone_id"]
@@ -97,71 +99,86 @@ Determine the notification strategy. Respond with JSON:
     reasoning_steps.append(f"  → Reasoning: {notification_plan.get('reasoning', 'N/A')}")
 
     # ==================================================================
-    # Step 2: Choose MQTT topic based on level
+    # Step 2: Determine broadcast channels based on level
     # ==================================================================
-    reasoning_steps.append("Step 2: Selecting MQTT topic(s).")
+    reasoning_steps.append("Step 2: Selecting broadcast channels.")
 
-    topics = []
+    channels = []
     if level == "LOW":
-        topics = []
-        reasoning_steps.append("  → LOW severity: dashboard notification only, no MQTT broadcast.")
+        channels = []
+        reasoning_steps.append("  → LOW severity: dashboard notification only, no UDP broadcast.")
     elif level == "MEDIUM":
-        topics = [f"alerts/zone/{zone_id}"]
-        reasoning_steps.append(f"  → MEDIUM severity: publishing to alerts/zone/{zone_id}")
+        channels = [f"udp/zone/{zone_id}"]
+        reasoning_steps.append(f"  → MEDIUM severity: UDP broadcast to zone {zone_id}")
     elif level == "CRITICAL":
-        topics = ["alerts/global", "alerts/critical", f"alerts/zone/{zone_id}"]
-        reasoning_steps.append("  → CRITICAL severity: broadcasting to global + critical + zone topics.")
+        channels = ["udp/global", "udp/critical", f"udp/zone/{zone_id}"]
+        reasoning_steps.append("  → CRITICAL severity: broadcasting to global + critical + zone channels.")
 
     # ==================================================================
-    # Step 3: Publish alerts via Network Broadcast
+    # Step 3: Send UDP Broadcast to Android devices
     # ==================================================================
     delivery_status = "dashboard_only"
     publish_failed = False
 
-    if topics:
-        reasoning_steps.append("Step 3: Publishing alerts via Network Broadcast.")
-        tools_used.append("broadcast_alert")
+    if channels:
+        reasoning_steps.append("Step 3: Sending UDP broadcast to Android devices.")
+        tools_used.append("udp_broadcast")
 
-        alert_payload = {
+        alert_id = str(uuid.uuid4())
+        now_iso = datetime.now(timezone.utc).isoformat()
+
+        # Build the UDP payload matching the Android app's expected format
+        udp_payload = {
+            "type": "ALERT",
+            "alert_id": alert_id,
             "zone": zone_id,
+            "severity": level.upper(),
             "message": message,
-            "severity": level.lower()
+            "channels": ",".join(channels),
+            "timestamp": now_iso,
         }
 
-        publish_success = True
-        try:
-            resp = requests.post("http://localhost:8000/api/v1/broadcast-alert", json=alert_payload, timeout=5.0)
-            if resp.status_code in (200, 201):
-                reasoning_steps.append(f"  → Broadcasted successfully")
-            else:
-                reasoning_steps.append(f"  → FAILED to broadcast: HTTP {resp.status_code}")
-                publish_success = False
-        except Exception as e:
-            reasoning_steps.append(f"  → FAILED to broadcast: {e}")
-            publish_success = False
+        # Fire the UDP broadcast
+        broadcast_success = send_udp_broadcast(udp_payload)
 
-        if publish_success:
+        if broadcast_success:
+            reasoning_steps.append(f"  → UDP broadcast sent successfully (alert_id={alert_id[:8]}...)")
             delivery_status = "sent"
-        elif not publish_success and level == "CRITICAL":
-            delivery_status = "partial_failure"
-            publish_failed = True
         else:
-            delivery_status = "failed"
+            reasoning_steps.append(f"  → FAILED to send UDP broadcast")
             publish_failed = True
+            if level == "CRITICAL":
+                delivery_status = "partial_failure"
+            else:
+                delivery_status = "failed"
+
+        # For CRITICAL alerts, also try FCM push for devices not on LAN
+        if level == "CRITICAL":
+            try:
+                from app.network.fcm_sender import send_fcm_alert_async
+                import asyncio
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    # We're in an async context, schedule the FCM send
+                    asyncio.create_task(send_fcm_alert_async(udp_payload))
+                    reasoning_steps.append("  → FCM push notification scheduled for offline devices.")
+                    tools_used.append("fcm_push")
+            except Exception as e:
+                reasoning_steps.append(f"  → FCM push failed (UDP still sent): {e}")
 
     # ==================================================================
-    # Step 4: Store alert in DB
+    # Step 4: Store alert in DB via Supabase
     # ==================================================================
     reasoning_steps.append("Step 4: Persisting alert to database.")
     try:
-        execute_query(
-            """
-            INSERT INTO alerts (zone_id, severity, message, topic, delivery_status)
-            VALUES (%s, %s, %s, %s, %s)
-            """,
-            (zone_id, level, message, ",".join(topics) if topics else "dashboard", delivery_status),
-            fetch=False,
-        )
+        from app.db.supabase_client import get_supabase
+        sb = get_supabase()
+        alert_row = {
+            "zone": zone_id,
+            "message": message,
+            "severity": level.lower(),
+        }
+        sb.table("alerts").insert(alert_row).execute()
         reasoning_steps.append("  → Alert stored in database.")
     except Exception as e:
         reasoning_steps.append(f"  → Failed to store alert in DB: {e}")
@@ -183,7 +200,7 @@ Determine the notification strategy. Respond with JSON:
         reasoning_steps.append("  → Delivered → routing to feedback")
 
     notification_result = {
-        "topic": ",".join(topics) if topics else "dashboard",
+        "topic": ",".join(channels) if channels else "dashboard",
         "reasoning_steps": reasoning_steps,
         "tools_used": tools_used,
         "delivery_status": delivery_status,

@@ -44,7 +44,7 @@ function ShelterPanel({ zones }: { zones: SimZone[] }) {
           <option value="">Select a zone...</option>
           {zones.map((z) => (
             <option key={z.id} value={z.id}>
-              Zone {z.id.slice(0, 8)} — {z.severity.toUpperCase()} (Damage: {(z.damage_level * 100).toFixed(0)}%)
+              {z.name} — {z.severity.toUpperCase()} (Damage: {(z.damage_level * 100).toFixed(0)}%)
             </option>
           ))}
         </select>

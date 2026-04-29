@@ -17,6 +17,8 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 
 export type Zone = {
   id: string;
+  name?: string;
+  disaster_type?: string;
   lat: number;
   lon: number;
   risk_score: number;

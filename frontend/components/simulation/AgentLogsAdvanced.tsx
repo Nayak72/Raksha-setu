@@ -83,12 +83,15 @@ function AgentLogsAdvanced({
           <select
             value={zoneFilter}
             onChange={(e) => setZoneFilter(e.target.value)}
-            className="input-field text-sm w-40"
+            className="input-field text-sm w-56"
           >
             <option value="">All Zones</option>
-            {uniqueZoneIds.map((id) => (
-              <option key={id} value={id}>{id.slice(0, 8)}...</option>
-            ))}
+            {uniqueZoneIds.map((id) => {
+              const zone = zones.find(z => z.id === id);
+              return (
+                <option key={id} value={id}>{zone ? zone.name : id.slice(0, 8)}</option>
+              );
+            })}
           </select>
         </div>
       </div>
@@ -131,8 +134,8 @@ function AgentLogsAdvanced({
                           <span className="text-[10px] font-mono text-surface-500 flex-shrink-0">
                             {new Date(log.timestamp).toLocaleTimeString()}
                           </span>
-                          <span className="text-xs font-mono text-surface-400 flex-shrink-0">
-                            Zone: {log.zone_id.slice(0, 8)}
+                          <span className="text-xs text-surface-400 flex-shrink-0 truncate max-w-[180px]" title={zones.find(z => z.id === log.zone_id)?.name || log.zone_id}>
+                            {zones.find(z => z.id === log.zone_id)?.name || `Zone ${log.zone_id.slice(0, 8)}`}
                           </span>
                           <span className="text-xs text-surface-300 truncate">
                             {log.decision}

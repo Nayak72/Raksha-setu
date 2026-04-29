@@ -26,8 +26,8 @@ function RoutingPanel({ zones }: { zones: SimZone[] }) {
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
     const map = L.map(mapContainerRef.current, {
-      center: [12.9716, 77.5946],
-      zoom: 13,
+      center: [13.9, 74.8], // Coastal Karnataka center
+      zoom: 9,
       zoomControl: true,
       attributionControl: false,
     });
@@ -86,7 +86,7 @@ function RoutingPanel({ zones }: { zones: SimZone[] }) {
         iconAnchor: [8, 8],
       }),
     })
-      .bindPopup(`<b>Zone ${zone.id.slice(0, 8)}</b><br/>Severity: ${zone.severity}`)
+      .bindPopup(`<b>${zone.name}</b><br/>Severity: ${zone.severity}`)
       .addTo(layer);
 
     // Base marker (green dot)
@@ -137,7 +137,7 @@ function RoutingPanel({ zones }: { zones: SimZone[] }) {
           <option value="">Select a zone...</option>
           {zones.map((z) => (
             <option key={z.id} value={z.id}>
-              Zone {z.id.slice(0, 8)} — {z.severity.toUpperCase()}
+              {z.name} — {z.severity.toUpperCase()}
             </option>
           ))}
         </select>

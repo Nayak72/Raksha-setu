@@ -121,7 +121,7 @@ export default function LiveMap({ zones, shelters, volunteerCount, simZones = []
     // Support rendering both legacy zones and simZones (prioritize simZones)
     const renderZones = simZones.length > 0 
       ? simZones.map(z => ({ id: z.id, lat: z.lat, lon: z.lng, risk_score: z.damage_level * 100, type: z.disaster_type, name: z.name, pop: z.affected_population, dmg: z.damage_level })) 
-      : zones.map(z => ({ id: z.id, lat: z.lat, lon: z.lon, risk_score: z.risk_score, type: 'unknown', name: `Zone ${z.id.slice(0,8)}`, pop: 0, dmg: z.risk_score/100 }));
+      : zones.map(z => ({ id: z.id, lat: z.lat, lon: z.lon, risk_score: z.risk_score, type: z.disaster_type || 'unknown', name: z.name || `Zone ${z.id.slice(0,8)}`, pop: 0, dmg: z.risk_score/100 }));
 
     renderZones.forEach((zone) => {
       const marker = L.marker([zone.lat, zone.lon], { icon: createZoneIcon(zone.risk_score, zone.type) });
@@ -249,11 +249,17 @@ export default function LiveMap({ zones, shelters, volunteerCount, simZones = []
         <div className="flex items-center gap-4 text-xs">
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full bg-danger-500 animate-pulse" />
-            <span className="text-surface-300">{zones.filter((z) => z.risk_score >= 60).length} High Risk</span>
+            <span className="text-surface-300">
+              {simZones.length > 0
+                ? `${simZones.filter((z) => z.severity === 'critical' || z.severity === 'high').length} High Risk`
+                : `${zones.filter((z) => z.risk_score >= 60).length} High Risk`}
+            </span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full bg-raksha-500" />
-            <span className="text-surface-300">{shelters.length} Shelters</span>
+            <span className="text-surface-300">
+              {simZones.length > 0 ? `${simZones.length} Zones` : `${shelters.length} Shelters`}
+            </span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full bg-safe-500" />

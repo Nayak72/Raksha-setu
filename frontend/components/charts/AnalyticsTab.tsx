@@ -24,19 +24,27 @@ function generateAlertTrend() {
   });
 }
 
+const ZONE_SHORT_NAMES = [
+  'Mangalore', 'Udupi', 'Karwar', 'Chikkamagaluru', 'DK-Puttur', 'Ankola', 'Sringeri',
+];
+
 function generateZoneRisk(zoneCount: number) {
-  return Array.from({ length: Math.max(zoneCount, 5) }).map((_, i) => {
+  return Array.from({ length: Math.max(zoneCount, 7) }).map((_, i) => {
     const risk = randomInt(15, 95);
-    return { name: `Zone ${i + 1}`, risk, color: risk > 75 ? '#ff6464' : risk > 45 ? '#ffbd20' : '#3bce7f' };
+    return { name: ZONE_SHORT_NAMES[i] || `Zone ${i + 1}`, risk, color: risk > 75 ? '#ff6464' : risk > 45 ? '#ffbd20' : '#3bce7f' };
   }).sort((a, b) => b.risk - a.risk);
 }
 
 function generateVolunteerData() {
-  return ['Zone 1', 'Zone 2', 'Zone 3', 'Zone 4', 'Zone 5'].map(zone => ({ zone, deployed: randomInt(8, 30), available: randomInt(3, 20), enroute: randomInt(1, 8) }));
+  return ZONE_SHORT_NAMES.map(zone => ({ zone, deployed: randomInt(8, 30), available: randomInt(3, 20), enroute: randomInt(1, 8) }));
 }
 
+const SHELTER_SHORT_NAMES = [
+  'Mangalore TH', 'Udupi TH', 'Karwar Stadium', 'Mudigere GC', 'Puttur TH', 'Ankola HS', 'Sringeri CH',
+];
+
 function generateShelterData() {
-  return ['Shelter A', 'Shelter B', 'Shelter C', 'Shelter D', 'Shelter E'].map(name => {
+  return SHELTER_SHORT_NAMES.map(name => {
     const capacity = randomInt(100, 350); const occupied = randomInt(30, capacity);
     return { name, capacity, occupied, available: capacity - occupied };
   });
@@ -83,13 +91,13 @@ export default function AnalyticsTab({ zones, alerts, volunteers, shelters, dete
   const [tick, setTick] = useState(0);
   const [countdown, setCountdown] = useState(REFRESH_INTERVAL / 1000);
   const [alertTrend, setAlertTrend] = useState(generateAlertTrend);
-  const [zoneRisk, setZoneRisk] = useState(() => generateZoneRisk(zones.length || 5));
+  const [zoneRisk, setZoneRisk] = useState(() => generateZoneRisk(zones.length || 7));
   const [volunteerData, setVolunteerData] = useState(generateVolunteerData);
   const [shelterData, setShelterData] = useState(generateShelterData);
   const [detectionTimeline, setDetectionTimeline] = useState(generateDetectionTimeline);
 
   const refreshAll = useCallback(() => {
-    setAlertTrend(generateAlertTrend()); setZoneRisk(generateZoneRisk(zones.length || 5));
+    setAlertTrend(generateAlertTrend()); setZoneRisk(generateZoneRisk(zones.length || 7));
     setVolunteerData(generateVolunteerData()); setShelterData(generateShelterData());
     setDetectionTimeline(generateDetectionTimeline()); setTick(t => t + 1); setCountdown(REFRESH_INTERVAL / 1000);
   }, [zones.length]);

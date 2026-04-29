@@ -87,8 +87,28 @@ model_pipeline/weights/
 !model_pipeline/weights/.gitkeep
 
 # =========================
-# Environment Variables
+# Environment Variables & Secrets
 # =========================
 .env
 .env.*
 !.env.example
+**/serviceAccountKey.json
+secrets.xml
+
+# =========================
+# Android (RakshaSetuAndroid)
+# =========================
+RakshaSetuAndroid.zip
+RakshaSetuAndroid/.gradle/
+RakshaSetuAndroid/build/
+RakshaSetuAndroid/*/build/
+RakshaSetuAndroid/local.properties
+RakshaSetuAndroid/RemoteDeviceConsoleLog/
+RakshaSetuAndroid/.idea/
+RakshaSetuAndroid/.externalNativeBuild/
+RakshaSetuAndroid/.cxx/
+RakshaSetuAndroid/captures/
+*.apk
+*.aar
+*.jks
+*.keystore
