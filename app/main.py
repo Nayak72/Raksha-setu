@@ -19,51 +19,25 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import get_settings
 from app.api.routes import router as api_router
 
-from app.db.listener import start_pg_listener, stop_pg_listener
-from app.services.simulation_service import start_simulation, stop_simulation
+from app.services.simulation import engine
 
 logger = structlog.get_logger(__name__)
 settings = get_settings()
 
-
-# ─────────────────────────────────────────────
-# Lifespan: startup / shutdown hooks
-# ─────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Manage async resources across the application lifecycle."""
     logger.info("raksha.startup", env=settings.app_env)
 
-    # 1. UDP broadcast layer is stateless — no connection needed
-    logger.info("udp.ready", broadcast_port=settings.udp.broadcast_port)
-
-    # 2. Start Postgres NOTIFY listener (event-driven agents)
-    listener_task = asyncio.create_task(start_pg_listener())
-    logger.info("pg_listener.started")
-
-    # 3. Start background auto-simulation (every 5s)
-    start_simulation()
+    # Start the simulation loop
+    engine.start()
     logger.info("simulation.auto_started")
 
     yield  # ← application is running
 
     # Shutdown
     logger.info("raksha.shutdown")
-
-    # Stop simulation loop
-    await stop_simulation()
-    
-    # Signal stop and cancel the listener task
-    await stop_pg_listener()
-    listener_task.cancel()
-    try:
-        await listener_task
-    except (asyncio.CancelledError, Exception):
-        pass
-        
-    from app.db.supabase_client import close_pg_pool
-    await close_pg_pool()
-    logger.info("udp.shutdown")
+    await engine.stop()
 
 
 # ─────────────────────────────────────────────

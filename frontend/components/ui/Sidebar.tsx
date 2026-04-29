@@ -21,6 +21,10 @@ import {
   ChevronRight,
   Camera,
   PieChart,
+  Home,
+  Users,
+  Route,
+  Package,
 } from 'lucide-react';
 
 export type NavPage =
@@ -32,7 +36,11 @@ export type NavPage =
   | 'agent-logs'
   | 'broadcast'
   | 'network'
-  | 'agent-graph';
+  | 'agent-graph'
+  | 'shelters'
+  | 'evacuation'
+  | 'routing'
+  | 'allocation';
 
 interface SidebarProps {
   collapsed: boolean;
@@ -44,6 +52,10 @@ const navItems: { id: NavPage; href: string; label: string; icon: React.ElementT
   { id: 'dashboard', href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, group: 'Overview' },
   { id: 'analytics', href: '/analytics', label: 'Analytics', icon: PieChart, group: 'Overview' },
   { id: 'live-map', href: '/live-map', label: 'Live Map', icon: Map, group: 'Overview' },
+  { id: 'shelters', href: '/shelters', label: 'Shelters', icon: Home, group: 'Operations' },
+  { id: 'evacuation', href: '/evacuation', label: 'Evacuation', icon: Users, group: 'Operations' },
+  { id: 'allocation', href: '/allocation', label: 'Resources', icon: Package, group: 'Operations' },
+  { id: 'routing', href: '/routing', label: 'Routing', icon: Route, group: 'Operations' },
   { id: 'live-yolo', href: '/live-yolo', label: 'Live YOLO', icon: Camera, group: 'Monitoring' },
   { id: 'alerts', href: '/alerts', label: 'Alerts', icon: Bell, group: 'Monitoring' },
   { id: 'agent-logs', href: '/agent-logs', label: 'Agent Logs', icon: Brain, group: 'Monitoring' },
