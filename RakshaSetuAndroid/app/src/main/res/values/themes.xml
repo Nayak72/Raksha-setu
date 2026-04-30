@@ -1,0 +1,19 @@
+<resources>
+    <!-- Base app theme (dark) -->
+    <style name="Theme.RakshaSetu" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#FF5722</item>
+        <item name="colorPrimaryVariant">#E64A19</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="colorSecondary">#4CAF50</item>
+        <item name="android:windowBackground">#121212</item>
+        <item name="android:statusBarColor">#000000</item>
+    </style>
+
+    <!-- Alert theme — no action bar, fullscreen -->
+    <style name="Theme.RakshaSetu.Alert" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowBackground">#CC0000</item>
+        <item name="android:statusBarColor">#CC0000</item>
+        <item name="android:navigationBarColor">#CC0000</item>
+    </style>
+</resources>
