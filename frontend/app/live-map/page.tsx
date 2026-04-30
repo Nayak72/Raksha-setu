@@ -43,13 +43,21 @@ function LiveMapContent() {
   const allSimShelters = Object.values(simSheltersMap).flat();
   const simConnections = Object.entries(simSheltersMap).map(([zone_id, shelters]) => ({ zone_id, shelters }));
 
+  const simTotalVolunteers = sim.zones.reduce((s, z, i) => {
+    const activeMod = Math.round(Math.sin(i) * 2);
+    return s + Math.max(0, activeMod) + Math.max(0, -activeMod);
+  }, 0);
+  const volunteerCount = volunteers.volunteers.length > 0 
+    ? volunteers.volunteers.filter(v => v.status === 'deployed' || v.status === 'dispatched').length 
+    : sim.zones.length > 0 ? simTotalVolunteers : 0;
+
   return (
     <div className="h-[calc(100vh-4rem)] animate-fade-in">
       <div className="glass-panel p-1 h-full">
         <LiveMap
           zones={zones.zones}
           shelters={shelters.shelters}
-          volunteerCount={volunteers.volunteers.length}
+          volunteerCount={volunteerCount}
           simZones={sim.zones}
           simShelters={allSimShelters}
           simConnections={simConnections}

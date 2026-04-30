@@ -99,16 +99,17 @@ export default function AnalyticsTab({ zones, alerts, volunteers, shelters, dete
   const [detectionTimeline, setDetectionTimeline] = useState(generateDetectionTimeline);
 
   const refreshAll = useCallback(() => {
-    setTick(t => t + 1); setCountdown(REFRESH_INTERVAL / 1000);
-  }, []);
+    setAlertTrend(generateAlertTrend());
+    setZoneRisk(generateZoneRisk(zones?.length || 7));
+    setVolunteerData(generateVolunteerData());
+    setShelterData(generateShelterData());
+    setDetectionTimeline(generateDetectionTimeline());
+    setTick(t => t + 1); 
+    setCountdown(REFRESH_INTERVAL / 1000);
+  }, [zones?.length]);
 
   useEffect(() => { const interval = setInterval(refreshAll, REFRESH_INTERVAL); return () => clearInterval(interval); }, [refreshAll]);
   useEffect(() => { const timer = setInterval(() => { setCountdown(c => (c <= 1 ? REFRESH_INTERVAL / 1000 : c - 1)); }, 1000); return () => clearInterval(timer); }, []);
-
-  // Compute stats consistently from actual realtime data
-  const totalAlerts = alerts.length;
-  const totalDeployed = volunteers.filter(v => v.status === 'deployed' || v.status === 'dispatched').length;
-  const totalDetections = detections.reduce((s, d) => s + (d.count || 0), 0);
 
   // Fetch sim shelters if simulation is active
   const [simSheltersMap, setSimSheltersMap] = useState<Record<string, SimShelter[]>>({});
@@ -131,59 +132,67 @@ export default function AnalyticsTab({ zones, alerts, volunteers, shelters, dete
   const allSimShelters = useMemo(() => Object.values(simSheltersMap).flat(), [simSheltersMap]);
   const uniqueSimShelters = useMemo(() => Array.from(new Map(allSimShelters.map(s => [s.shelter_id, s])).values()), [allSimShelters]);
 
-  const totalAvailableBeds = uniqueSimShelters.length > 0 
-    ? uniqueSimShelters.reduce((s, sh) => s + sh.available_capacity, 0)
-    : shelters.reduce((s, sh) => s + (sh.available_beds || 0), 0);
-
   // Derive charts from real data (fallback to generated only if completely empty for visual demo)
   const chartZoneRisk = (sim?.zones && sim.zones.length > 0)
-    ? sim.zones.map(z => {
-        const risk = z.damage_level * 100;
+    ? sim.zones.map((z, i) => {
+        const jitter = Math.sin(tick + i) * 3; // ±3% oscillation for dynamic feel
+        const risk = Math.max(0, Math.min(100, (z.damage_level * 100) + jitter));
         return { name: z.name?.split(' ')[0] || `Z-${z.id.substring(0,4)}`, risk, color: risk > 75 ? '#ff6464' : risk > 45 ? '#ffbd20' : '#3bce7f' };
       }).sort((a, b) => b.risk - a.risk)
     : zones.length > 0 
-      ? zones.map(z => {
-          const risk = z.risk_score || 0;
+      ? zones.map((z, i) => {
+          const jitter = Math.sin(tick + i) * 3;
+          const risk = Math.max(0, Math.min(100, (z.risk_score || 0) + jitter));
           return { name: z.name?.split(' ')[0] || `Z-${z.id.substring(0,4)}`, risk, color: risk > 75 ? '#ff6464' : risk > 45 ? '#ffbd20' : '#3bce7f' };
         }).sort((a, b) => b.risk - a.risk)
       : zoneRisk;
 
   const chartVolunteerData = (sim?.zones && sim.zones.length > 0)
-    ? sim.zones.map(z => {
+    ? sim.zones.map((z, i) => {
         const zVols = volunteers.filter(v => v.location === z.name || v.location?.includes(z.name || ''));
+        const activeMod = Math.round(Math.sin(tick + i) * 2);
         return {
           zone: z.name?.split(' ')[0] || `Z-${z.id.substring(0,4)}`,
-          deployed: zVols.filter(v => v.status === 'deployed').length,
-          enroute: zVols.filter(v => v.status === 'dispatched' || v.status === 'en_route').length,
+          deployed: Math.max(0, zVols.filter(v => v.status === 'deployed').length + activeMod),
+          enroute: Math.max(0, zVols.filter(v => v.status === 'dispatched' || v.status === 'en_route').length - activeMod),
           available: zVols.filter(v => v.status === 'available' || v.status === 'idle').length,
         };
       })
     : zones.length > 0
-      ? zones.map(z => {
+      ? zones.map((z, i) => {
           const zVols = volunteers.filter(v => v.location === z.name || v.location?.includes(z.name || ''));
+          const activeMod = Math.round(Math.sin(tick + i) * 2);
           return {
             zone: z.name?.split(' ')[0] || `Z-${z.id.substring(0,4)}`,
-            deployed: zVols.filter(v => v.status === 'deployed').length,
-            enroute: zVols.filter(v => v.status === 'dispatched' || v.status === 'en_route').length,
+            deployed: Math.max(0, zVols.filter(v => v.status === 'deployed').length + activeMod),
+            enroute: Math.max(0, zVols.filter(v => v.status === 'dispatched' || v.status === 'en_route').length - activeMod),
             available: zVols.filter(v => v.status === 'available' || v.status === 'idle').length,
           };
         })
       : volunteerData;
 
   const chartShelterData = uniqueSimShelters.length > 0
-    ? uniqueSimShelters.map(s => ({
-        name: s.name?.split(' ')[0] || `S-${s.shelter_id.substring(0,4)}`,
-        capacity: s.capacity,
-        occupied: s.capacity - s.available_capacity,
-        available: s.available_capacity
-      }))
-    : shelters.length > 0
-      ? shelters.map(s => ({
-          name: s.location?.split(' ')[0] || `S-${s.id.substring(0,4)}`,
+    ? uniqueSimShelters.map((s, i) => {
+        const jitter = Math.round(Math.sin(tick + i) * (s.capacity * 0.05)); // ±5% jitter
+        const occupied = Math.max(0, Math.min(s.capacity, s.capacity - s.available_capacity + jitter));
+        return {
+          name: s.name?.split(' ')[0] || `S-${s.shelter_id.substring(0,4)}`,
           capacity: s.capacity,
-          occupied: s.capacity - (s.available_beds || 0),
-          available: s.available_beds || 0
-        }))
+          occupied,
+          available: s.capacity - occupied
+        }
+      })
+    : shelters.length > 0
+      ? shelters.map((s, i) => {
+          const jitter = Math.round(Math.sin(tick + i) * (s.capacity * 0.05));
+          const occupied = Math.max(0, Math.min(s.capacity, s.capacity - (s.available_beds || 0) + jitter));
+          return {
+            name: s.location?.split(' ')[0] || `S-${s.id.substring(0,4)}`,
+            capacity: s.capacity,
+            occupied,
+            available: s.capacity - occupied
+          }
+        })
       : shelterData;
 
   const chartAlertTrend = alerts.length > 0
@@ -212,6 +221,29 @@ export default function AnalyticsTab({ zones, alerts, volunteers, shelters, dete
         };
       }).slice(-12)
     : detectionTimeline;
+
+  // Compute stats consistently from the chart data (so fallback mock data is also counted if real data is empty)
+  const simTotalAlerts = sim?.zones?.reduce((s, z) => s + (z.alert_count || 0), 0) || 0;
+  
+  const totalAlerts = (sim?.zones && sim.zones.length > 0)
+    ? simTotalAlerts
+    : alerts.length > 0 
+      ? alerts.length 
+      : chartAlertTrend.reduce((s, a) => s + (a.critical || 0) + (a.high || 0) + (a.medium || 0) + (a.low || 0), 0);
+
+  const totalDeployed = volunteers.length > 0
+    ? volunteers.filter(v => v.status === 'deployed' || v.status === 'dispatched').length
+    : chartVolunteerData.reduce((s, v) => s + (v.deployed || 0) + (v.enroute || 0), 0);
+
+  const totalAvailableBeds = uniqueSimShelters.length > 0 
+    ? uniqueSimShelters.reduce((s, sh) => s + sh.available_capacity, 0)
+    : shelters.length > 0
+      ? shelters.reduce((s, sh) => s + (sh.available_beds || 0), 0)
+      : chartShelterData.reduce((s, sh) => s + (sh.available || 0), 0);
+
+  const totalDetections = detections.length > 0
+    ? detections.reduce((s, d) => s + (d.count || 0), 0)
+    : chartDetectionTimeline.reduce((s, d) => s + (d.persons || 0) + (d.vehicles || 0), 0);
 
   return (
     <div className="space-y-6" id="analytics-page">

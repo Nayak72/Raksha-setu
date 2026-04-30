@@ -46,16 +46,38 @@ const SEVERITY_CONFIG = {
   },
 } as const;
 
-function ZoneCriticalityCards({ zones }: { zones: SimZone[] }) {
-  const sorted = [...zones].sort((a, b) => {
-    const order = { critical: 0, high: 1, medium: 2, low: 3 };
-    return order[a.severity] - order[b.severity];
+function ZoneCriticalityCards({ zones, isSimulation = true }: { zones: any[], isSimulation?: boolean }) {
+  const normalizedZones = zones.map((z) => {
+    if (isSimulation && z.severity) {
+      return { ...z, severity: z.severity.toLowerCase() };
+    }
+    
+    const risk_score = z.risk_score || 0;
+    const severity = risk_score >= 80 ? 'critical' : risk_score >= 60 ? 'high' : risk_score >= 40 ? 'medium' : 'low';
+    
+    return {
+      id: z.id,
+      name: z.name || `Zone ${z.id.slice(0, 6)}`,
+      lat: z.lat || 0,
+      lng: z.lon || z.lng || 0,
+      population: z.population || 0,
+      affected_population: z.affected_population || 0,
+      damage_level: z.damage_level !== undefined ? z.damage_level : risk_score / 100,
+      alert_count: z.alert_count || 0,
+      severity,
+      disaster_type: z.disaster_type || 'unknown',
+    };
+  });
+
+  const sorted = [...normalizedZones].sort((a, b) => {
+    const order: Record<string, number> = { critical: 0, high: 1, medium: 2, low: 3 };
+    return (order[a.severity] ?? 4) - (order[b.severity] ?? 4);
   });
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
       {sorted.map((zone) => {
-        const cfg = SEVERITY_CONFIG[zone.severity];
+        const cfg = SEVERITY_CONFIG[zone.severity as keyof typeof SEVERITY_CONFIG] || SEVERITY_CONFIG['low'];
         const Icon = cfg.icon;
 
         return (

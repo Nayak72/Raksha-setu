@@ -4,10 +4,19 @@
 'use client';
 
 import { memo } from 'react';
-import { SimAllocation } from '../../lib/simulation-api';
+import { SimAllocation, SimShelter } from '../../lib/simulation-api';
 import { Package, Bed, Heart, Users } from 'lucide-react';
+import { Shelter } from '../../lib/supabase';
 
-function ResourceAllocationTable({ allocations }: { allocations: SimAllocation[] }) {
+function ResourceAllocationTable({ 
+  allocations, 
+  shelters = [], 
+  simShelters = [] 
+}: { 
+  allocations: SimAllocation[], 
+  shelters?: Shelter[],
+  simShelters?: SimShelter[]
+}) {
   const totals = allocations.reduce(
     (acc, a) => ({
       food: acc.food + a.food_units,
@@ -17,6 +26,17 @@ function ResourceAllocationTable({ allocations }: { allocations: SimAllocation[]
     }),
     { food: 0, beds: 0, medical: 0, teams: 0 }
   );
+
+  const getShelterName = (id: string) => {
+    // Check local database first
+    const shelter = shelters.find(s => s.id === id);
+    if (shelter?.name) return shelter.name;
+    // Check simulation API database
+    const simShelter = simShelters.find(s => s.shelter_id === id);
+    if (simShelter?.name) return simShelter.name;
+    // Fallback to truncated ID
+    return id.slice(0, 8);
+  };
 
   return (
     <div className="space-y-5">
@@ -57,7 +77,7 @@ function ResourceAllocationTable({ allocations }: { allocations: SimAllocation[]
         <table className="w-full">
           <thead>
             <tr className="border-b border-surface-700/50">
-              <th className="text-left text-[10px] uppercase tracking-wider text-surface-500 px-5 py-3">Shelter ID</th>
+              <th className="text-left text-[10px] uppercase tracking-wider text-surface-500 px-5 py-3">Shelter Name</th>
               <th className="text-right text-[10px] uppercase tracking-wider text-surface-500 px-5 py-3">Food</th>
               <th className="text-right text-[10px] uppercase tracking-wider text-surface-500 px-5 py-3">Beds</th>
               <th className="text-right text-[10px] uppercase tracking-wider text-surface-500 px-5 py-3">Medical</th>
@@ -70,8 +90,8 @@ function ResourceAllocationTable({ allocations }: { allocations: SimAllocation[]
                 key={a.shelter_id}
                 className="border-b border-surface-800/50 hover:bg-surface-800/30 transition-colors"
               >
-                <td className="px-5 py-3 text-xs font-mono text-surface-300">
-                  {a.shelter_id.slice(0, 8)}...
+                <td className="px-5 py-3 text-xs font-semibold text-surface-200">
+                  {getShelterName(a.shelter_id)}
                 </td>
                 <td className="px-5 py-3 text-right text-sm font-semibold text-warning-400">
                   {a.food_units.toLocaleString()}

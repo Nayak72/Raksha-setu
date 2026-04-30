@@ -90,15 +90,24 @@ function DashboardContent() {
   }, [sim.zones]);
 
   const allSimShelters = Object.values(simSheltersMap).flat();
+  const uniqueSimSheltersList = Array.from(new Map(allSimShelters.map(s => [s.shelter_id, s])).values());
   const simConnections = Object.entries(simSheltersMap).map(([zone_id, shelters]) => ({ zone_id, shelters }));
 
   // Unified metric cards — prefer simulation data when available
   const activeZoneCount = sim.zones.length > 0 ? sim.zones.length : zones.zones.length;
-  const uniqueSimShelters = new Set(allSimShelters.map(s => s.shelter_id)).size;
-  const shelterCount = uniqueSimShelters > 0 ? uniqueSimShelters : shelters.shelters.length;
-  const recentAlerts = alerts.alerts.filter(
-    (a) => new Date(a.timestamp) > new Date(Date.now() - 3600000)
-  ).length;
+  const shelterCount = uniqueSimSheltersList.length > 0 ? uniqueSimSheltersList.length : shelters.shelters.length;
+  
+  const simTotalAlerts = sim.zones.reduce((s, z) => s + (z.alert_count || 0), 0);
+  const recentAlerts = sim.zones.length > 0 
+    ? simTotalAlerts 
+    : alerts.alerts.filter((a) => new Date(a.timestamp) > new Date(Date.now() - 3600000)).length;
+    
+  const totalAlertsCount = sim.zones.length > 0 ? simTotalAlerts : alerts.alerts.length;
+
+  const simAvailableBeds = uniqueSimSheltersList.reduce((s, sh) => s + sh.available_capacity, 0);
+  const totalAvailableBeds = uniqueSimSheltersList.length > 0 
+    ? simAvailableBeds 
+    : shelters.shelters.reduce((s, sh) => s + (sh.available_beds || 0), 0);
 
   const metrics = [
     {
@@ -124,7 +133,7 @@ function DashboardContent() {
     {
       label: 'Shelters',
       value: shelterCount,
-      subValue: `${allSimShelters.reduce((s, sh) => s + sh.available_capacity, 0).toLocaleString()} beds available`,
+      subValue: `${totalAvailableBeds.toLocaleString()} beds available`,
       icon: Home,
       color: 'text-warning-400',
       bgColor: 'from-warning-500/10 to-warning-500/5',
@@ -134,17 +143,26 @@ function DashboardContent() {
     {
       label: 'Active Alerts',
       value: recentAlerts,
-      subValue: `${alerts.alerts.length} total`,
+      subValue: `${totalAlertsCount} total`,
       icon: AlertTriangle,
       color: recentAlerts > 0 ? 'text-danger-400' : 'text-surface-400',
       bgColor: recentAlerts > 0 ? 'from-danger-500/10 to-danger-500/5' : 'from-surface-500/10 to-surface-500/5',
       borderColor: recentAlerts > 0 ? 'border-danger-500/20' : 'border-surface-500/20',
-      trend: recentAlerts > 5 ? 'up' as const : recentAlerts > 0 ? 'neutral' as const : 'down' as const,
+      trend: recentAlerts > 0 ? 'down' as const : 'neutral' as const,
     },
   ];
 
+  // Calculate volunteer count consistently with AnalyticsTab fallback logic
+  const simTotalVolunteers = sim.zones.reduce((s, z, i) => {
+    const activeMod = Math.round(Math.sin(i) * 2);
+    return s + Math.max(0, activeMod) + Math.max(0, -activeMod);
+  }, 0);
+  const volunteerCount = volunteers.volunteers.length > 0 
+    ? volunteers.volunteers.filter(v => v.status === 'deployed' || v.status === 'dispatched').length 
+    : sim.zones.length > 0 ? simTotalVolunteers : 0;
+
   return (
-    <div className="space-y-5 animate-fade-in" id="dashboard-page">
+    <div className="space-y-5 animate-fade-in pb-10" id="dashboard-page">
       {/* Connection status */}
       <div className="flex items-center justify-end gap-1.5">
         {sim.connected ? (
@@ -159,61 +177,50 @@ function DashboardContent() {
       </div>
 
       {/* Unified Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {metrics.map((metric, i) => {
-          const Icon = metric.icon;
-          const TrendIcon =
-            metric.trend === 'up' ? TrendingUp : metric.trend === 'down' ? TrendingDown : Minus;
-
-          return (
-            <motion.div
-              key={metric.label}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
-              className={`metric-card bg-gradient-to-br ${metric.bgColor} ${metric.borderColor}`}
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div className={`p-2 rounded-xl bg-surface-800/40 ${metric.color}`}>
-                  <Icon size={18} />
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+        {metrics.map((m) => (
+          <motion.div 
+            key={m.label} 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`glass-panel p-5 border-l-4 ${m.borderColor} relative overflow-hidden group hover:bg-surface-800/40 transition-colors`}
+          >
+            <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${m.bgColor} rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-110`} />
+            <div className="relative flex justify-between items-start">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <m.icon size={16} className={m.color} />
+                  <span className="text-xs font-semibold text-surface-400 uppercase tracking-wider">{m.label}</span>
                 </div>
-                <div className="flex items-center gap-1">
-                  <TrendIcon
-                    size={12}
-                    className={
-                      metric.trend === 'up'
-                        ? metric.label === 'Active Alerts'
-                          ? 'text-danger-400'
-                          : 'text-safe-400'
-                        : metric.trend === 'down'
-                        ? 'text-danger-400'
-                        : 'text-surface-500'
-                    }
-                  />
-                </div>
+                <div className="text-3xl font-black text-surface-50 mb-1">{m.value}</div>
+                <div className="text-xs text-surface-500 font-medium">{m.subValue}</div>
               </div>
-
-              <div className="text-2xl font-black text-white mb-0.5">{metric.value}</div>
-              <div className="text-xs text-surface-400 font-medium">{metric.label}</div>
-              <div className="text-[10px] text-surface-500 mt-1">{metric.subValue}</div>
-            </motion.div>
-          );
-        })}
+              {m.trend === 'up' && <TrendingUp size={16} className="text-safe-400" />}
+              {m.trend === 'down' && <TrendingDown size={16} className="text-danger-400" />}
+              {m.trend === 'neutral' && <Minus size={16} className="text-surface-500" />}
+            </div>
+          </motion.div>
+        ))}
       </div>
 
-      {/* Zone Criticality Cards */}
-      {sim.zones.length > 0 && <ZoneCriticalityCards zones={sim.zones} />}
+      {/* Criticality Zone Strip */}
+      <ZoneCriticalityCards 
+        zones={sim.zones.length > 0 ? sim.zones : zones.zones} 
+        isSimulation={sim.zones.length > 0} 
+      />
 
-      {/* Full-width Map */}
-      <div className="glass-panel p-1 h-[480px]">
-        <LiveMap
-          zones={zones.zones}
-          shelters={shelters.shelters}
-          volunteerCount={volunteers.volunteers.length}
-          simZones={sim.zones}
-          simShelters={allSimShelters}
-          simConnections={simConnections}
-        />
+      {/* Middle Section: Map & Logs */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[400px]">
+        <div className="lg:col-span-2 glass-panel p-1 relative group">
+          <LiveMap
+            zones={zones.zones}
+            shelters={shelters.shelters}
+            volunteerCount={volunteerCount}
+            simZones={sim.zones}
+            simShelters={allSimShelters}
+            simConnections={simConnections}
+          />
+        </div>
       </div>
 
       {/* Row 2: Agent Logs + Broadcast */}

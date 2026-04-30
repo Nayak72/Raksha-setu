@@ -93,6 +93,7 @@ export default function LiveMap({ zones, shelters, volunteerCount, simZones = []
   const zoneLayerRef = useRef<L.LayerGroup>(L.layerGroup());
   const shelterLayerRef = useRef<L.LayerGroup>(L.layerGroup());
   const lineLayerRef = useRef<L.LayerGroup>(L.layerGroup());
+  const hasFitBounds = useRef(false);
 
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
@@ -111,6 +112,7 @@ export default function LiveMap({ zones, shelters, volunteerCount, simZones = []
     return () => {
       map.remove();
       mapRef.current = null;
+      hasFitBounds.current = false;
     };
   }, []);
 
@@ -146,9 +148,10 @@ export default function LiveMap({ zones, shelters, volunteerCount, simZones = []
       marker.addTo(layer);
     });
 
-    if (renderZones.length > 0 && mapRef.current) {
+    if (renderZones.length > 0 && mapRef.current && !hasFitBounds.current) {
       const bounds = L.latLngBounds(renderZones.map((z) => [z.lat, z.lon]));
       mapRef.current.fitBounds(bounds, { padding: [50, 50], maxZoom: 10 });
+      hasFitBounds.current = true;
     }
   }, [zones, simZones]);
 
