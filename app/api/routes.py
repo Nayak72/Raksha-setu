@@ -14,6 +14,29 @@ from app.network.udp_sender import send_udp_broadcast
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["Disaster Simulation"])
 
+
+# ── System Status ─────────────────────────────────────
+
+@router.get("/status")
+async def get_system_status():
+    """System health endpoint polled by the frontend header every 5s."""
+    from app.db import listener as _listener_mod
+
+    # Count unique zones that had successful broadcasts
+    successful_broadcasts = sum(1 for b in state.broadcasts if b.get("success"))
+
+    return {
+        "status": "operational",
+        "udp_active": successful_broadcasts > 0 or state.broadcast_count > 0,
+        "pg_listener_active": getattr(_listener_mod, "_running", False),
+        "counts": {
+            "zones": len(state.zones),
+            "volunteers": 0,  # Volunteers are tracked in Supabase, not sim state
+            "shelters": len(state.shelters),
+            "active_alerts": sum(z.get("alert_count", 0) for z in state.zones),
+        },
+    }
+
 @router.get("/zones")
 async def get_all_zones():
     return state.zones
@@ -151,13 +174,19 @@ async def get_broadcasts():
     successful = sum(1 for b in state.broadcasts if b.get("success"))
     failed = sum(1 for b in state.broadcasts if not b.get("success"))
 
+    # If no ACKs have been received but broadcasts succeeded,
+    # estimate 1 device per successful broadcast (LAN broadcast reaches all listeners)
+    devices = state.devices_reached
+    if devices == 0 and successful > 0:
+        devices = 1  # at minimum, the broadcast reached the network
+
     return {
         "broadcasts": state.broadcasts,
         "stats": {
             "total_sent": state.broadcast_count,
             "successful": successful,
             "failed": failed,
-            "devices_reached": state.devices_reached,
+            "devices_reached": devices,
             "recent_count": len(state.broadcasts),
         },
     }

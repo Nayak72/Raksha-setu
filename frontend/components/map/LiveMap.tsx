@@ -27,11 +27,11 @@ interface LiveMapProps {
 }
 
 function getRiskColor(risk: number): string {
-  if (risk >= 80) return '#ff2d2d';
-  if (risk >= 60) return '#ff6464';
-  if (risk >= 40) return '#ffbd20';
-  if (risk >= 20) return '#ffd14a';
-  return '#3bce7f';
+  if (risk >= 80) return '#EF4444';
+  if (risk >= 60) return '#F87171';
+  if (risk >= 40) return '#F59E0B';
+  if (risk >= 20) return '#FBBF24';
+  return '#22C55E';
 }
 
 function getRiskLabel(risk: number): string {
@@ -67,7 +67,7 @@ function createShelterIcon(): L.DivIcon {
   return L.divIcon({
     className: 'custom-shelter-marker',
     html: `
-      <div style="width:32px;height:32px;background:linear-gradient(135deg, #16a34a, #22c55e);border:2px solid #86efac;border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 10px rgba(34, 197, 94, 0.4);">
+      <div style="width:32px;height:32px;background:linear-gradient(135deg, #16a34a, #22c55e);border:2px solid #4ADE80;border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(34, 197, 94, 0.3);">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
           <polyline points="9 22 9 12 15 12 15 22"/>
@@ -90,9 +90,9 @@ function parseShelterLocation(location: string): [number, number] | null {
 export default function LiveMap({ zones, shelters, volunteerCount, simZones = [], simShelters = [], simConnections = [] }: LiveMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const zoneLayerRef = useRef<L.LayerGroup>(L.layerGroup());
-  const shelterLayerRef = useRef<L.LayerGroup>(L.layerGroup());
-  const lineLayerRef = useRef<L.LayerGroup>(L.layerGroup());
+  const zoneLayerRef = useRef<L.LayerGroup | null>(null);
+  const shelterLayerRef = useRef<L.LayerGroup | null>(null);
+  const lineLayerRef = useRef<L.LayerGroup | null>(null);
   const hasFitBounds = useRef(false);
 
   useEffect(() => {
@@ -104,19 +104,28 @@ export default function LiveMap({ zones, shelters, volunteerCount, simZones = []
       attributionControl: false,
     });
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
-    lineLayerRef.current.addTo(map);
-    zoneLayerRef.current.addTo(map);
-    shelterLayerRef.current.addTo(map);
+
+    const lineLg = L.layerGroup().addTo(map);
+    const zoneLg = L.layerGroup().addTo(map);
+    const shelterLg = L.layerGroup().addTo(map);
+
+    lineLayerRef.current = lineLg;
+    zoneLayerRef.current = zoneLg;
+    shelterLayerRef.current = shelterLg;
     mapRef.current = map;
 
     return () => {
-      map.remove();
       mapRef.current = null;
+      zoneLayerRef.current = null;
+      shelterLayerRef.current = null;
+      lineLayerRef.current = null;
       hasFitBounds.current = false;
+      map.remove();
     };
   }, []);
 
   useEffect(() => {
+    if (!mapRef.current || !zoneLayerRef.current) return;
     const layer = zoneLayerRef.current;
     layer.clearLayers();
 
@@ -156,6 +165,7 @@ export default function LiveMap({ zones, shelters, volunteerCount, simZones = []
   }, [zones, simZones]);
 
   useEffect(() => {
+    if (!mapRef.current || !shelterLayerRef.current || !lineLayerRef.current) return;
     const layer = shelterLayerRef.current;
     const lines = lineLayerRef.current;
     layer.clearLayers();
@@ -169,14 +179,14 @@ export default function LiveMap({ zones, shelters, volunteerCount, simZones = []
       uniqueShelters.forEach((shelter) => {
         const marker = L.marker([shelter.lat, shelter.lng], { icon: createShelterIcon() });
         const occupancy = ((shelter.capacity - shelter.available_capacity) / shelter.capacity) * 100;
-        const occColor = occupancy > 80 ? '#ff2d2d' : occupancy > 50 ? '#ffbd20' : '#22c55e';
+        const occColor = occupancy > 80 ? '#EF4444' : occupancy > 50 ? '#F59E0B' : '#22c55e';
         
         marker.bindPopup(`
           <div style="font-family:Inter,sans-serif;padding:4px;">
             <div style="font-size:14px;font-weight:700;margin-bottom:6px;color:#22c55e;">🏥 ${shelter.name}</div>
             <div style="font-size:12px;color:#94a3b8;margin-bottom:2px;">Capacity: <span style="font-weight:600;color:white;">${shelter.capacity}</span></div>
             <div style="font-size:12px;color:#94a3b8;margin-bottom:4px;">Available: <span style="font-weight:600;color:${occColor};">${shelter.available_capacity}</span></div>
-            <div style="background:#0f172a;border-radius:4px;height:6px;overflow:hidden;margin-top:4px;">
+            <div style="background:#0A0F1A;border-radius:4px;height:6px;overflow:hidden;margin-top:4px;">
               <div style="height:100%;width:${occupancy}%;background:${occColor};border-radius:4px;"></div>
             </div>
             <div style="font-size:10px;color:#64748b;margin-top:4px;">ID: ${shelter.shelter_id.slice(0, 8)}</div>
@@ -208,13 +218,13 @@ export default function LiveMap({ zones, shelters, volunteerCount, simZones = []
       if (!coords) return;
       const marker = L.marker(coords, { icon: createShelterIcon() });
       const occupancy = ((shelter.capacity - shelter.available_beds) / shelter.capacity) * 100;
-      const occColor = occupancy > 80 ? '#ff2d2d' : occupancy > 50 ? '#ffbd20' : '#22c55e';
+      const occColor = occupancy > 80 ? '#EF4444' : occupancy > 50 ? '#F59E0B' : '#22c55e';
       marker.bindPopup(`
         <div style="font-family:Inter,sans-serif;padding:4px;">
           <div style="font-size:14px;font-weight:700;margin-bottom:6px;color:#22c55e;">🏥 Shelter ${shelter.id.slice(0, 8)}</div>
           <div style="font-size:12px;color:#94a3b8;margin-bottom:2px;">Capacity: <span style="font-weight:600;color:white;">${shelter.capacity}</span></div>
           <div style="font-size:12px;color:#94a3b8;margin-bottom:4px;">Available: <span style="font-weight:600;color:${occColor};">${shelter.available_beds}</span></div>
-          <div style="background:#0f172a;border-radius:4px;height:6px;overflow:hidden;margin-top:4px;">
+          <div style="background:#0A0F1A;border-radius:4px;height:6px;overflow:hidden;margin-top:4px;">
             <div style="height:100%;width:${occupancy}%;background:${occColor};border-radius:4px;"></div>
           </div>
         </div>
@@ -230,11 +240,11 @@ export default function LiveMap({ zones, shelters, volunteerCount, simZones = []
         <div className="text-xs font-semibold text-surface-300 mb-2 uppercase tracking-wider">Risk Levels</div>
         <div className="flex flex-col gap-1.5">
           {[
-            { label: 'Critical', color: '#ff2d2d', range: '80-100' },
-            { label: 'High', color: '#ff6464', range: '60-79' },
-            { label: 'Medium', color: '#ffbd20', range: '40-59' },
-            { label: 'Low', color: '#ffd14a', range: '20-39' },
-            { label: 'Safe', color: '#3bce7f', range: '0-19' },
+            { label: 'Critical', color: '#EF4444', range: '80-100' },
+            { label: 'High', color: '#F87171', range: '60-79' },
+            { label: 'Medium', color: '#F59E0B', range: '40-59' },
+            { label: 'Low', color: '#FBBF24', range: '20-39' },
+            { label: 'Safe', color: '#22C55E', range: '0-19' },
           ].map((level) => (
             <div key={level.label} className="flex items-center gap-2 text-xs">
               <div className="w-3 h-3 rounded-full" style={{ backgroundColor: level.color, boxShadow: `0 0 6px ${level.color}60` }} />

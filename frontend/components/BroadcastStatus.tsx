@@ -270,7 +270,7 @@ export default function BroadcastStatus({
         <PulseRing active={isActive} />
         <div className="relative inline-flex items-center justify-center mb-4">
           <svg width="120" height="120" viewBox="0 0 120 120">
-            <circle cx="60" cy="60" r="52" fill="none" stroke="#1e293b" strokeWidth="8" />
+            <circle cx="60" cy="60" r="52" fill="none" stroke="#1B2433" strokeWidth="8" />
             <motion.circle
               cx="60" cy="60" r="52" fill="none" stroke="url(#broadcastGradient)" strokeWidth="8" strokeLinecap="round"
               strokeDasharray={`${2 * Math.PI * 52}`}
@@ -282,9 +282,9 @@ export default function BroadcastStatus({
             />
             <defs>
               <linearGradient id="broadcastGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#1a65ff" />
-                <stop offset="50%" stopColor="#3bce7f" />
-                <stop offset="100%" stopColor="#06d6a0" />
+                <stop offset="0%" stopColor="#2563EB" />
+                <stop offset="50%" stopColor="#22C55E" />
+                <stop offset="100%" stopColor="#34D399" />
               </linearGradient>
             </defs>
           </svg>

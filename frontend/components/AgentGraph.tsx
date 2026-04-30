@@ -18,7 +18,7 @@ function AgentNode({ data }: { data: { label: string; type: string; status: stri
     agent: { bg: 'bg-gradient-to-br from-raksha-900/80 to-raksha-950/80', border: 'border-raksha-500/40', text: 'text-raksha-400', glow: 'shadow-raksha-500/20' },
     service: { bg: 'bg-gradient-to-br from-safe-900/80 to-safe-950/80', border: 'border-safe-500/40', text: 'text-safe-400', glow: 'shadow-safe-500/20' },
     output: { bg: 'bg-gradient-to-br from-danger-900/80 to-danger-950/80', border: 'border-danger-500/40', text: 'text-danger-400', glow: 'shadow-danger-500/20' },
-    database: { bg: 'bg-gradient-to-br from-purple-900/80 to-purple-950/80', border: 'border-purple-500/40', text: 'text-purple-400', glow: 'shadow-purple-500/20' },
+    database: { bg: 'bg-gradient-to-br from-raksha-900/80 to-raksha-950/80', border: 'border-raksha-500/40', text: 'text-raksha-300', glow: 'shadow-raksha-500/20' },
   };
   const style = colors[data.type] || colors.agent;
   const icons: Record<string, string> = { trigger: '⚡', agent: '🤖', service: '⚙️', output: '📡', database: '🗄️' };
@@ -62,18 +62,18 @@ export default function AgentGraph({ alerts, detections }: AgentGraphProps) {
   ], [alerts, detections, hasActivity]);
 
   const initialEdges: Edge[] = useMemo(() => [
-    { id: 'e-det-pg', source: 'detection-event', target: 'postgres', animated: detections.length > 0, style: { stroke: '#ffbd20', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#ffbd20' }, label: 'INSERT', labelStyle: { fill: '#94a3b8', fontSize: 10 } },
-    { id: 'e-wx-pg', source: 'weather-event', target: 'postgres', animated: false, style: { stroke: '#ffbd20', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#ffbd20' }, label: 'INSERT', labelStyle: { fill: '#94a3b8', fontSize: 10 } },
-    { id: 'e-pg-det', source: 'postgres', target: 'detection-agent', animated: detections.length > 0, style: { stroke: '#a855f7', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#a855f7' }, label: 'NOTIFY', labelStyle: { fill: '#94a3b8', fontSize: 10 } },
-    { id: 'e-pg-wx', source: 'postgres', target: 'weather-agent', animated: false, style: { stroke: '#a855f7', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#a855f7' }, label: 'NOTIFY', labelStyle: { fill: '#94a3b8', fontSize: 10 } },
-    { id: 'e-det-alert', source: 'detection-agent', target: 'alert-service', animated: alerts.length > 0, style: { stroke: '#1a65ff', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#1a65ff' } },
-    { id: 'e-det-disp', source: 'detection-agent', target: 'dispatch-agent', animated: alerts.some((a) => a.severity === 'critical'), style: { stroke: '#1a65ff', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#1a65ff' }, label: 'critical', labelStyle: { fill: '#ff6464', fontSize: 9 } },
-    { id: 'e-wx-alert', source: 'weather-agent', target: 'alert-service', animated: false, style: { stroke: '#1a65ff', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#1a65ff' } },
-    { id: 'e-wx-disp', source: 'weather-agent', target: 'dispatch-agent', animated: false, style: { stroke: '#1a65ff', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#1a65ff' } },
-    { id: 'e-disp-geo', source: 'dispatch-agent', target: 'geo-service', animated: alerts.some((a) => a.severity === 'critical'), style: { stroke: '#3bce7f', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#3bce7f' } },
-    { id: 'e-alert-net', source: 'alert-service', target: 'network-broadcast', animated: alerts.length > 0, style: { stroke: '#ff2d2d', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#ff2d2d' }, label: 'broadcast', labelStyle: { fill: '#ff6464', fontSize: 9 } },
-    { id: 'e-pg-dash', source: 'postgres', target: 'dashboard', animated: true, style: { stroke: '#a855f7', strokeWidth: 2, strokeDasharray: '5,5' }, markerEnd: { type: MarkerType.ArrowClosed, color: '#a855f7' }, label: 'Realtime', labelStyle: { fill: '#a855f7', fontSize: 9 } },
-    { id: 'e-net-dash', source: 'network-broadcast', target: 'dashboard', animated: true, style: { stroke: '#ff2d2d', strokeWidth: 2, strokeDasharray: '5,5' }, markerEnd: { type: MarkerType.ArrowClosed, color: '#ff2d2d' }, label: 'HTTP / WS', labelStyle: { fill: '#ff6464', fontSize: 9 } },
+    { id: 'e-det-pg', source: 'detection-event', target: 'postgres', animated: detections.length > 0, style: { stroke: '#F59E0B', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#F59E0B' }, label: 'INSERT', labelStyle: { fill: '#9CA3AF', fontSize: 10 } },
+    { id: 'e-wx-pg', source: 'weather-event', target: 'postgres', animated: false, style: { stroke: '#F59E0B', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#F59E0B' }, label: 'INSERT', labelStyle: { fill: '#9CA3AF', fontSize: 10 } },
+    { id: 'e-pg-det', source: 'postgres', target: 'detection-agent', animated: detections.length > 0, style: { stroke: '#2563EB', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#2563EB' }, label: 'NOTIFY', labelStyle: { fill: '#94a3b8', fontSize: 10 } },
+    { id: 'e-pg-wx', source: 'postgres', target: 'weather-agent', animated: false, style: { stroke: '#2563EB', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#2563EB' }, label: 'NOTIFY', labelStyle: { fill: '#94a3b8', fontSize: 10 } },
+    { id: 'e-det-alert', source: 'detection-agent', target: 'alert-service', animated: alerts.length > 0, style: { stroke: '#2563EB', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#2563EB' } },
+    { id: 'e-det-disp', source: 'detection-agent', target: 'dispatch-agent', animated: alerts.some((a) => a.severity === 'critical'), style: { stroke: '#2563EB', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#2563EB' }, label: 'critical', labelStyle: { fill: '#EF4444', fontSize: 9 } },
+    { id: 'e-wx-alert', source: 'weather-agent', target: 'alert-service', animated: false, style: { stroke: '#2563EB', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#2563EB' } },
+    { id: 'e-wx-disp', source: 'weather-agent', target: 'dispatch-agent', animated: false, style: { stroke: '#2563EB', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#2563EB' } },
+    { id: 'e-disp-geo', source: 'dispatch-agent', target: 'geo-service', animated: alerts.some((a) => a.severity === 'critical'), style: { stroke: '#22C55E', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#22C55E' } },
+    { id: 'e-alert-net', source: 'alert-service', target: 'network-broadcast', animated: alerts.length > 0, style: { stroke: '#EF4444', strokeWidth: 2 }, markerEnd: { type: MarkerType.ArrowClosed, color: '#EF4444' }, label: 'broadcast', labelStyle: { fill: '#F87171', fontSize: 9 } },
+    { id: 'e-pg-dash', source: 'postgres', target: 'dashboard', animated: true, style: { stroke: '#2563EB', strokeWidth: 2, strokeDasharray: '5,5' }, markerEnd: { type: MarkerType.ArrowClosed, color: '#2563EB' }, label: 'Realtime', labelStyle: { fill: '#3B82F6', fontSize: 9 } },
+    { id: 'e-net-dash', source: 'network-broadcast', target: 'dashboard', animated: true, style: { stroke: '#EF4444', strokeWidth: 2, strokeDasharray: '5,5' }, markerEnd: { type: MarkerType.ArrowClosed, color: '#EF4444' }, label: 'HTTP / WS', labelStyle: { fill: '#F87171', fontSize: 9 } },
   ], [alerts, detections]);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -84,9 +84,9 @@ export default function AgentGraph({ alerts, detections }: AgentGraphProps) {
   return (
     <div className="w-full h-full rounded-2xl overflow-hidden" id="agent-graph">
       <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} nodeTypes={nodeTypes} connectionMode={ConnectionMode.Loose} fitView fitViewOptions={{ padding: 0.2 }} minZoom={0.3} maxZoom={1.5} defaultEdgeOptions={{ type: 'smoothstep' }}>
-        <Background color="#1e293b" gap={20} size={1} />
-        <Controls showInteractive={false} style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '12px' }} />
-        <MiniMap nodeColor={(node) => { const type = node.data?.type; if (type === 'trigger') return '#ffbd20'; if (type === 'agent') return '#1a65ff'; if (type === 'service') return '#3bce7f'; if (type === 'output') return '#ff2d2d'; if (type === 'database') return '#a855f7'; return '#64748b'; }} maskColor="rgba(15, 23, 42, 0.8)" style={{ background: '#1e293b', border: '1px solid #334155', borderRadius: '12px' }} />
+        <Background color="#1B2433" gap={20} size={1} />
+        <Controls showInteractive={false} style={{ background: '#1B2433', border: '1px solid #2A3441', borderRadius: '12px' }} />
+        <MiniMap nodeColor={(node) => { const type = node.data?.type; if (type === 'trigger') return '#F59E0B'; if (type === 'agent') return '#2563EB'; if (type === 'service') return '#22C55E'; if (type === 'output') return '#EF4444'; if (type === 'database') return '#2563EB'; return '#6B7280'; }} maskColor="rgba(10, 15, 26, 0.8)" style={{ background: '#1B2433', border: '1px solid #2A3441', borderRadius: '12px' }} />
       </ReactFlow>
     </div>
   );

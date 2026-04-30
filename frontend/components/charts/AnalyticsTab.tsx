@@ -33,7 +33,7 @@ const ZONE_SHORT_NAMES = [
 function generateZoneRisk(zoneCount: number) {
   return Array.from({ length: Math.max(zoneCount, 7) }).map((_, i) => {
     const risk = randomInt(15, 95);
-    return { name: ZONE_SHORT_NAMES[i] || `Zone ${i + 1}`, risk, color: risk > 75 ? '#ff6464' : risk > 45 ? '#ffbd20' : '#3bce7f' };
+    return { name: ZONE_SHORT_NAMES[i] || `Zone ${i + 1}`, risk, color: risk > 75 ? '#EF4444' : risk > 45 ? '#F59E0B' : '#22C55E' };
   }).sort((a, b) => b.risk - a.risk);
 }
 
@@ -85,7 +85,7 @@ function StatCard({ icon: Icon, label, value, color, subtext }: { icon: React.El
   );
 }
 
-const darkTooltipStyle = { backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '10px', boxShadow: '0 8px 32px rgba(0,0,0,0.4)', fontSize: '12px' };
+const darkTooltipStyle = { backgroundColor: '#0A0F1A', borderColor: '#2A3441', borderRadius: '10px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)', fontSize: '12px' };
 
 interface AnalyticsTabProps { zones: Zone[]; alerts: Alert[]; volunteers: Volunteer[]; shelters: Shelter[]; detections: Detection[]; sim?: SimulationState; }
 
@@ -137,13 +137,13 @@ export default function AnalyticsTab({ zones, alerts, volunteers, shelters, dete
     ? sim.zones.map((z, i) => {
         const jitter = Math.sin(tick + i) * 3; // ±3% oscillation for dynamic feel
         const risk = Math.max(0, Math.min(100, (z.damage_level * 100) + jitter));
-        return { name: z.name?.split(' ')[0] || `Z-${z.id.substring(0,4)}`, risk, color: risk > 75 ? '#ff6464' : risk > 45 ? '#ffbd20' : '#3bce7f' };
+        return { name: z.name?.split(' ')[0] || `Z-${z.id.substring(0,4)}`, risk, color: risk > 75 ? '#EF4444' : risk > 45 ? '#F59E0B' : '#22C55E' };
       }).sort((a, b) => b.risk - a.risk)
     : zones.length > 0 
       ? zones.map((z, i) => {
           const jitter = Math.sin(tick + i) * 3;
           const risk = Math.max(0, Math.min(100, (z.risk_score || 0) + jitter));
-          return { name: z.name?.split(' ')[0] || `Z-${z.id.substring(0,4)}`, risk, color: risk > 75 ? '#ff6464' : risk > 45 ? '#ffbd20' : '#3bce7f' };
+          return { name: z.name?.split(' ')[0] || `Z-${z.id.substring(0,4)}`, risk, color: risk > 75 ? '#EF4444' : risk > 45 ? '#F59E0B' : '#22C55E' };
         }).sort((a, b) => b.risk - a.risk)
       : zoneRisk;
 
@@ -269,10 +269,10 @@ export default function AnalyticsTab({ zones, alerts, volunteers, shelters, dete
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <StatCard icon={AlertTriangle} label="Total Alerts (24h)" value={totalAlerts} color="#ff6464" subtext="Across all zones" />
-        <StatCard icon={Users} label="Deployed Volunteers" value={totalDeployed} color="#3d84ff" subtext="Active in field" />
-        <StatCard icon={Shield} label="Available Beds" value={totalAvailableBeds} color="#3bce7f" subtext="Across all shelters" />
-        <StatCard icon={Eye} label="Detections (1h)" value={totalDetections} color="#ffbd20" subtext="Persons & vehicles" />
+        <StatCard icon={AlertTriangle} label="Total Alerts (24h)" value={totalAlerts} color="#EF4444" subtext="Across all zones" />
+        <StatCard icon={Users} label="Deployed Volunteers" value={totalDeployed} color="#2563EB" subtext="Active in field" />
+        <StatCard icon={Shield} label="Available Beds" value={totalAvailableBeds} color="#22C55E" subtext="Across all shelters" />
+        <StatCard icon={Eye} label="Detections (1h)" value={totalDetections} color="#F59E0B" subtext="Persons & vehicles" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -286,19 +286,19 @@ export default function AnalyticsTab({ zones, alerts, volunteers, shelters, dete
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartAlertTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="gradCritical" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#ff2d2d" stopOpacity={0.35} /><stop offset="95%" stopColor="#ff2d2d" stopOpacity={0} /></linearGradient>
-                  <linearGradient id="gradHigh" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#ff9e9e" stopOpacity={0.3} /><stop offset="95%" stopColor="#ff9e9e" stopOpacity={0} /></linearGradient>
-                  <linearGradient id="gradMedium" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#ffbd20" stopOpacity={0.25} /><stop offset="95%" stopColor="#ffbd20" stopOpacity={0} /></linearGradient>
-                  <linearGradient id="gradLow" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#3bce7f" stopOpacity={0.2} /><stop offset="95%" stopColor="#3bce7f" stopOpacity={0} /></linearGradient>
+                  <linearGradient id="gradCritical" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#EF4444" stopOpacity={0.35} /><stop offset="95%" stopColor="#EF4444" stopOpacity={0} /></linearGradient>
+                  <linearGradient id="gradHigh" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#F87171" stopOpacity={0.3} /><stop offset="95%" stopColor="#F87171" stopOpacity={0} /></linearGradient>
+                  <linearGradient id="gradMedium" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#F59E0B" stopOpacity={0.25} /><stop offset="95%" stopColor="#F59E0B" stopOpacity={0} /></linearGradient>
+                  <linearGradient id="gradLow" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#22C55E" stopOpacity={0.2} /><stop offset="95%" stopColor="#22C55E" stopOpacity={0} /></linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-                <XAxis dataKey="time" stroke="#64748b" fontSize={11} tickLine={false} />
-                <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#1B2433" vertical={false} />
+                <XAxis dataKey="time" stroke="#6B7280" fontSize={11} tickLine={false} />
+                <YAxis stroke="#6B7280" fontSize={11} tickLine={false} axisLine={false} />
                 <RechartsTooltip contentStyle={darkTooltipStyle} />
-                <Area type="monotone" dataKey="critical" stackId="1" stroke="#ff2d2d" fill="url(#gradCritical)" strokeWidth={2} name="Critical" />
-                <Area type="monotone" dataKey="high" stackId="1" stroke="#ff9e9e" fill="url(#gradHigh)" strokeWidth={1.5} name="High" />
-                <Area type="monotone" dataKey="medium" stackId="1" stroke="#ffbd20" fill="url(#gradMedium)" strokeWidth={1.5} name="Medium" />
-                <Area type="monotone" dataKey="low" stackId="1" stroke="#3bce7f" fill="url(#gradLow)" strokeWidth={1.5} name="Low" />
+                <Area type="monotone" dataKey="critical" stackId="1" stroke="#EF4444" fill="url(#gradCritical)" strokeWidth={2} name="Critical" />
+                <Area type="monotone" dataKey="high" stackId="1" stroke="#F87171" fill="url(#gradHigh)" strokeWidth={1.5} name="High" />
+                <Area type="monotone" dataKey="medium" stackId="1" stroke="#F59E0B" fill="url(#gradMedium)" strokeWidth={1.5} name="Medium" />
+                <Area type="monotone" dataKey="low" stackId="1" stroke="#22C55E" fill="url(#gradLow)" strokeWidth={1.5} name="Low" />
                 <Legend verticalAlign="top" height={30} iconType="circle" wrapperStyle={{ fontSize: '11px' }} />
               </AreaChart>
             </ResponsiveContainer>
@@ -311,9 +311,9 @@ export default function AnalyticsTab({ zones, alerts, volunteers, shelters, dete
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartZoneRisk} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-                <XAxis dataKey="name" stroke="#64748b" fontSize={11} tickLine={false} />
-                <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} domain={[0, 100]} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#1B2433" vertical={false} />
+                <XAxis dataKey="name" stroke="#6B7280" fontSize={11} tickLine={false} />
+                <YAxis stroke="#6B7280" fontSize={11} tickLine={false} axisLine={false} domain={[0, 100]} />
                 <RechartsTooltip contentStyle={darkTooltipStyle} formatter={(val) => [`${val}%`, 'Risk Score']} />
                 <Bar dataKey="risk" radius={[6, 6, 0, 0]} name="Risk Score">{chartZoneRisk.map((entry, i) => (<Cell key={i} fill={entry.color} />))}</Bar>
               </BarChart>
@@ -327,13 +327,13 @@ export default function AnalyticsTab({ zones, alerts, volunteers, shelters, dete
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartVolunteerData} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" horizontal={false} />
-                <XAxis type="number" stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
-                <YAxis dataKey="zone" type="category" stroke="#64748b" fontSize={11} tickLine={false} width={55} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#1B2433" horizontal={false} />
+                <XAxis type="number" stroke="#6B7280" fontSize={11} tickLine={false} axisLine={false} />
+                <YAxis dataKey="zone" type="category" stroke="#6B7280" fontSize={11} tickLine={false} width={55} />
                 <RechartsTooltip contentStyle={darkTooltipStyle} />
-                <Bar dataKey="deployed" stackId="v" fill="#3d84ff" radius={[0, 0, 0, 0]} name="Deployed" />
-                <Bar dataKey="enroute" stackId="v" fill="#ffbd20" radius={[0, 0, 0, 0]} name="En Route" />
-                <Bar dataKey="available" stackId="v" fill="#3bce7f" radius={[0, 4, 4, 0]} name="Available" />
+                <Bar dataKey="deployed" stackId="v" fill="#2563EB" radius={[0, 0, 0, 0]} name="Deployed" />
+                <Bar dataKey="enroute" stackId="v" fill="#F59E0B" radius={[0, 0, 0, 0]} name="En Route" />
+                <Bar dataKey="available" stackId="v" fill="#22C55E" radius={[0, 4, 4, 0]} name="Available" />
                 <Legend verticalAlign="top" height={28} iconType="circle" wrapperStyle={{ fontSize: '11px' }} />
               </BarChart>
             </ResponsiveContainer>
@@ -346,12 +346,12 @@ export default function AnalyticsTab({ zones, alerts, volunteers, shelters, dete
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartShelterData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-                <XAxis dataKey="name" stroke="#64748b" fontSize={11} tickLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#1B2433" vertical={false} />
+                <XAxis dataKey="name" stroke="#6B7280" fontSize={11} tickLine={false} />
                 <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
                 <RechartsTooltip contentStyle={darkTooltipStyle} />
-                <Bar dataKey="occupied" stackId="s" fill="#ff9e9e" radius={[0, 0, 0, 0]} name="Occupied" />
-                <Bar dataKey="available" stackId="s" fill="#3bce7f" radius={[4, 4, 0, 0]} name="Available" />
+                <Bar dataKey="occupied" stackId="s" fill="#F87171" radius={[0, 0, 0, 0]} name="Occupied" />
+                <Bar dataKey="available" stackId="s" fill="#22C55E" radius={[4, 4, 0, 0]} name="Available" />
                 <Legend verticalAlign="top" height={28} iconType="circle" wrapperStyle={{ fontSize: '11px' }} />
               </BarChart>
             </ResponsiveContainer>
@@ -364,12 +364,12 @@ export default function AnalyticsTab({ zones, alerts, volunteers, shelters, dete
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartDetectionTimeline} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#1B2433" vertical={false} />
                 <XAxis dataKey="time" stroke="#64748b" fontSize={11} tickLine={false} />
                 <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
                 <RechartsTooltip contentStyle={darkTooltipStyle} />
-                <Line type="monotone" dataKey="persons" stroke="#3d84ff" strokeWidth={2} dot={false} name="Persons" />
-                <Line type="monotone" dataKey="vehicles" stroke="#ff6464" strokeWidth={2} dot={false} name="Vehicles" />
+                <Line type="monotone" dataKey="persons" stroke="#2563EB" strokeWidth={2} dot={false} name="Persons" />
+                <Line type="monotone" dataKey="vehicles" stroke="#EF4444" strokeWidth={2} dot={false} name="Vehicles" />
                 <Legend verticalAlign="top" height={28} iconType="circle" wrapperStyle={{ fontSize: '11px' }} />
               </LineChart>
             </ResponsiveContainer>

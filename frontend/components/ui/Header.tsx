@@ -4,7 +4,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { SystemStatus } from '../../hooks/useSupabaseRealtime';
 
 interface HeaderProps {
@@ -17,6 +17,7 @@ interface HeaderProps {
 
 export default function Header(props: HeaderProps) {
   const [currentTime, setCurrentTime] = useState<string>('');
+  const [isSpinning, setIsSpinning] = useState(false);
   
   useEffect(() => {
     // Set time only on client to avoid hydration mismatch
@@ -45,6 +46,14 @@ export default function Header(props: HeaderProps) {
     onRefresh,
   } = props;
   const router = useRouter();
+
+  const handleRefresh = useCallback(() => {
+    setIsSpinning(true);
+    onRefresh();
+    // Also hard-refresh the current route data
+    router.refresh();
+    setTimeout(() => setIsSpinning(false), 1000);
+  }, [onRefresh, router]);
 
   const counts = systemStatus?.counts || { zones: 0, volunteers: 0, shelters: 0, active_alerts: 0 };
 
@@ -123,15 +132,16 @@ export default function Header(props: HeaderProps) {
 
         <div className="w-px h-6 bg-surface-700/50" />
 
-
-
         <button
-          onClick={onRefresh}
+          onClick={handleRefresh}
           className="p-2 rounded-lg hover:bg-surface-800/60 transition-colors group"
           title="Refresh all data"
           id="refresh-btn"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-surface-400 group-hover:text-white transition-colors">
+          <svg
+            width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+            className={`text-surface-400 group-hover:text-white transition-colors ${isSpinning ? 'animate-spin' : ''}`}
+          >
             <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
             <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
           </svg>
