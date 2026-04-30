@@ -10,11 +10,7 @@ export async function fetchAgentLogs() {
   return res.json();
 }
 
-export async function fetchSystemStatus() {
-  const res = await fetch(`${API_BASE}/api/v1/status`);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
-}
+
 
 export async function triggerDetection(payload: {
   zone_id: string;

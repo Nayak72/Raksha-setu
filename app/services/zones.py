@@ -18,25 +18,25 @@ from app.services.state import state
 KARNATAKA_DISASTER_ZONES = [
     # id, name, lat, lng, disaster_type, base_population
     # Mangalore region — flood-prone coastal area
-    ("11111111-1111-4111-8111-111111111111", "Mangalore Coastal Flood Zone",      12.8698, 74.8431, "flood",     8500),
+    ("11111111-1111-4111-8111-111111111111", "Mangalore",      12.8698, 74.8431, "flood",     8500),
 
     # Udupi region — cyclone corridor
-    ("22222222-2222-4222-8222-222222222222", "Udupi-Malpe Cyclone Zone",          13.3500, 74.7069, "cyclone",   5400),
+    ("22222222-2222-4222-8222-222222222222", "Udupi-Malpe",          13.3500, 74.7069, "cyclone",   5400),
 
     # Karwar region — storm surge belt
-    ("33333333-3333-4333-8333-333333333333", "Karwar Storm Surge Zone",           14.8024, 74.1293, "storm",     6800),
+    ("33333333-3333-4333-8333-333333333333", "Karwar",           14.8024, 74.1293, "storm",     6800),
 
     # Chikkamagaluru — landslide-prone hilly terrain
-    ("44444444-4444-4444-8444-444444444444", "Chikkamagaluru Landslide Zone",     13.1325, 75.6404, "landslide", 3200),
+    ("44444444-4444-4444-8444-444444444444", "Chikkamagaluru",     13.1325, 75.6404, "landslide", 3200),
 
     # Dakshina Kannada — flood/storm mix
-    ("55555555-5555-4555-8555-555555555555", "DK-Puttur Flood Zone",             12.7590, 75.2039, "flood",     5100),
+    ("55555555-5555-4555-8555-555555555555", "DK-Puttur",             12.7590, 75.2039, "flood",     5100),
 
     # Uttara Kannada inland — cyclone risk
-    ("66666666-6666-4666-8666-666666666666", "Ankola Cyclone Zone",              14.6600, 74.3039, "cyclone",   3900),
+    ("66666666-6666-4666-8666-666666666666", "Ankola",              14.6600, 74.3039, "cyclone",   3900),
 
     # Shimoga/Shivamogga — landslide corridor
-    ("77777777-7777-4777-8777-777777777777", "Sringeri Landslide Zone",          13.4186, 75.2590, "landslide", 2800),
+    ("77777777-7777-4777-8777-777777777777", "Sringeri",          13.4186, 75.2590, "landslide", 2800),
 ]
 
 

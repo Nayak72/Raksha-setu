@@ -174,13 +174,13 @@ async def run_migration():
     print("\n--- Seeding data ---")
     seeds = [
         ("""INSERT INTO zones (id, name, disaster_type, lat, lon, risk_score) VALUES
-            ('11111111-1111-4111-8111-111111111111', 'Mangalore Coastal Flood Zone', 'flood', 12.8698, 74.8431, 3.5),
-            ('22222222-2222-4222-8222-222222222222', 'Udupi-Malpe Cyclone Zone', 'cyclone', 13.3500, 74.7069, 2.5),
-            ('33333333-3333-4333-8333-333333333333', 'Karwar Storm Surge Zone', 'storm', 14.8024, 74.1293, 4.0),
-            ('44444444-4444-4444-8444-444444444444', 'Chikkamagaluru Landslide Zone', 'landslide', 13.1325, 75.6404, 3.0),
-            ('55555555-5555-4555-8555-555555555555', 'DK-Puttur Flood Zone', 'flood', 12.7590, 75.2039, 2.0),
-            ('66666666-6666-4666-8666-666666666666', 'Ankola Cyclone Zone', 'cyclone', 14.6600, 74.3039, 2.8),
-            ('77777777-7777-4777-8777-777777777777', 'Sringeri Landslide Zone', 'landslide', 13.4186, 75.2590, 3.2)""", "zones"),
+            ('11111111-1111-4111-8111-111111111111', 'Mangalore', 'flood', 12.8698, 74.8431, 3.5),
+            ('22222222-2222-4222-8222-222222222222', 'Udupi-Malpe', 'cyclone', 13.3500, 74.7069, 2.5),
+            ('33333333-3333-4333-8333-333333333333', 'Karwar', 'storm', 14.8024, 74.1293, 4.0),
+            ('44444444-4444-4444-8444-444444444444', 'Chikkamagaluru', 'landslide', 13.1325, 75.6404, 3.0),
+            ('55555555-5555-4555-8555-555555555555', 'DK-Puttur', 'flood', 12.7590, 75.2039, 2.0),
+            ('66666666-6666-4666-8666-666666666666', 'Ankola', 'cyclone', 14.6600, 74.3039, 2.8),
+            ('77777777-7777-4777-8777-777777777777', 'Sringeri', 'landslide', 13.4186, 75.2590, 3.2)""", "zones"),
 
         ("""INSERT INTO volunteers (location, status, skill_level) VALUES
             ('12.8698,74.8431', 'available', 4),

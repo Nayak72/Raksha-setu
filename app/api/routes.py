@@ -38,26 +38,7 @@ async def get_agent_logs(zone_id: Optional[str] = None):
 async def get_zone_routes(zone_id: str):
     return get_routes(zone_id)
 
-@router.get("/status")
-async def system_status():
-    import time
-    try:
-        from app.db import crud as db
-        counts = await db.get_counts()
-    except Exception:
-        counts = {}
-    return {
-        "status": "operational",
-        "udp_active": True,
-        "pg_listener_active": True,
-        "uptime_seconds": time.monotonic(),
-        "counts": {
-            "zones": counts.get("active_zones", 0),
-            "volunteers": counts.get("total_volunteers", 0),
-            "shelters": counts.get("total_shelters", 0),
-            "active_alerts": counts.get("pending_alerts", 0),
-        }
-    }
+
 
 @router.get("/agent-logs")
 async def get_old_agent_logs(limit: int = 50, zone_id: Optional[str] = None):

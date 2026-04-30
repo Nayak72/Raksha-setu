@@ -57,7 +57,6 @@ const navItems: { id: NavPage; href: string; label: string; icon: React.ElementT
   { id: 'live-yolo', href: '/live-yolo', label: 'Live YOLO', icon: Camera, group: 'Monitoring' },
   { id: 'agent-logs', href: '/agent-logs', label: 'Agent Logs', icon: Brain, group: 'Monitoring' },
   { id: 'broadcast', href: '/broadcast', label: 'Broadcast', icon: Radio, group: 'Monitoring' },
-  { id: 'network', href: '/network', label: 'Network Monitor', icon: Wifi, group: 'System' },
   { id: 'agent-graph', href: '/agent-graph', label: 'Agent Graph', icon: GitBranch, group: 'System' },
 ];
 
@@ -74,21 +73,19 @@ export default function Sidebar({ collapsed, onToggle, alertCount }: SidebarProp
       id="sidebar"
     >
       {/* Logo */}
-      <div className="flex items-center gap-3 px-4 h-16 border-b border-surface-700/50">
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-raksha-500 to-raksha-700 flex items-center justify-center flex-shrink-0">
-          <Shield size={18} className="text-white" />
-        </div>
+      <div className={`flex ${collapsed ? 'items-center justify-center h-20' : 'flex-col items-center py-6 text-center'} gap-3 px-4 border-b border-surface-700/50`}>
+        <img src="/logo.jpeg" alt="RakshaSetu Logo" className={`${collapsed ? 'h-10' : 'h-24'} w-auto object-contain rounded-lg flex-shrink-0`} />
         {!collapsed && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="overflow-hidden"
+            className="overflow-hidden flex flex-col items-center"
           >
-            <h1 className="text-sm font-black tracking-tight gradient-text whitespace-nowrap">
-              RakshaSethu
+            <h1 className="text-3xl font-black tracking-tight gradient-text whitespace-nowrap">
+              Raksha-Setu
             </h1>
-            <p className="text-[9px] text-surface-500 font-medium tracking-wider uppercase">
+            <p className="text-xs text-surface-400 font-medium tracking-wider uppercase mt-1">
               Disaster Command
             </p>
           </motion.div>

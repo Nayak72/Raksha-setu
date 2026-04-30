@@ -6,12 +6,12 @@
 
 @layer base {
   :root {
-    --color-bg: #020617;
-    --color-surface: #0f172a;
-    --color-surface-elevated: #1e293b;
-    --color-border: #334155;
-    --color-text: #f8fafc;
-    --color-text-muted: #94a3b8;
+    --color-bg: #0B0F19;
+    --color-surface: #111827;
+    --color-surface-elevated: #1F2937;
+    --color-border: #1F2937;
+    --color-text: #E5E7EB;
+    --color-text-muted: #9CA3AF;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -31,8 +31,8 @@
 
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: #475569; }
+  ::-webkit-scrollbar-thumb { background: #1F2937; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #374151; }
 }
 
 @layer components {
@@ -43,7 +43,7 @@
     @apply bg-surface-800/70 backdrop-blur-xl border border-surface-600/40 rounded-2xl shadow-xl;
   }
   .gradient-text {
-    @apply bg-gradient-to-r from-raksha-400 to-raksha-200 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-raksha-500 to-accent-500 bg-clip-text text-transparent;
   }
   .status-badge {
     @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium;
@@ -61,16 +61,16 @@
     @apply status-badge bg-raksha-500/20 text-raksha-400 border border-raksha-500/30;
   }
   .metric-card {
-    @apply glass-panel p-5 transition-all duration-300 hover:border-raksha-500/30 hover:shadow-lg hover:shadow-raksha-500/5;
+    @apply glass-panel p-5 transition-all duration-300 hover:border-raksha-500/50 hover:shadow-[0_0_15px_rgba(59,130,246,0.2)];
   }
   .nav-link {
     @apply flex items-center gap-3 px-4 py-3 rounded-xl text-surface-400 transition-all duration-200 hover:bg-surface-800/60 hover:text-white;
   }
   .nav-link-active {
-    @apply nav-link bg-raksha-500/10 text-raksha-400 border border-raksha-500/20;
+    @apply nav-link bg-raksha-500/10 text-raksha-400 border border-raksha-500/30 shadow-[0_0_10px_rgba(59,130,246,0.15)];
   }
   .btn-primary {
-    @apply inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-raksha-600 text-white font-medium transition-all duration-200 hover:bg-raksha-500 hover:shadow-lg hover:shadow-raksha-500/25 active:scale-95;
+    @apply inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-raksha-500 text-white font-medium transition-all duration-200 hover:bg-raksha-400 hover:shadow-[0_0_15px_rgba(59,130,246,0.6)] active:scale-95;
   }
   .btn-danger {
     @apply inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-danger-600 text-white font-medium transition-all duration-200 hover:bg-danger-500 hover:shadow-lg hover:shadow-danger-500/25 active:scale-95;
@@ -84,14 +84,14 @@
 }
 
 /* Leaflet map overrides */
-.leaflet-container { background: #0f172a !important; border-radius: 1rem; }
+.leaflet-container { background: #111827 !important; border-radius: 1rem; }
 .leaflet-control-zoom { border: none !important; }
-.leaflet-control-zoom a { background: #1e293b !important; color: #f8fafc !important; border: 1px solid #334155 !important; }
-.leaflet-popup-content-wrapper { background: #1e293b !important; color: #f8fafc !important; border: 1px solid #334155 !important; border-radius: 12px !important; }
-.leaflet-popup-tip { background: #1e293b !important; }
-.leaflet-tooltip { background: #1e293b !important; color: #f8fafc !important; border: 1px solid #334155 !important; border-radius: 8px !important; font-family: 'Inter', sans-serif !important; font-size: 12px !important; padding: 6px 10px !important; }
-.leaflet-tooltip-top::before { border-top-color: #334155 !important; }
-.leaflet-tooltip-bottom::before { border-bottom-color: #334155 !important; }
+.leaflet-control-zoom a { background: #1F2937 !important; color: #E5E7EB !important; border: 1px solid #1F2937 !important; }
+.leaflet-popup-content-wrapper { background: #1F2937 !important; color: #E5E7EB !important; border: 1px solid #1F2937 !important; border-radius: 12px !important; }
+.leaflet-popup-tip { background: #1F2937 !important; }
+.leaflet-tooltip { background: #1F2937 !important; color: #E5E7EB !important; border: 1px solid #1F2937 !important; border-radius: 8px !important; font-family: 'Inter', sans-serif !important; font-size: 12px !important; padding: 6px 10px !important; }
+.leaflet-tooltip-top::before { border-top-color: #1F2937 !important; }
+.leaflet-tooltip-bottom::before { border-bottom-color: #1F2937 !important; }
 
 /* Map marker pulse animation */
 @keyframes pulse {
@@ -103,7 +103,7 @@
 .emergency-overlay { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; animation: emergency-flash 0.5s ease-in-out infinite; }
 
 /* ReactFlow overrides */
-.react-flow__background { background: #0f172a !important; }
-.react-flow__minimap { background: #1e293b !important; border: 1px solid #334155 !important; border-radius: 12px !important; }
+.react-flow__background { background: #111827 !important; }
+.react-flow__minimap { background: #1F2937 !important; border: 1px solid #1F2937 !important; border-radius: 12px !important; }
 .react-flow__controls { border: none !important; }
-.react-flow__controls-button { background: #1e293b !important; color: #f8fafc !important; border: 1px solid #334155 !important; }
+.react-flow__controls-button { background: #1F2937 !important; color: #E5E7EB !important; border: 1px solid #1F2937 !important; }

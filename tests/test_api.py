@@ -25,20 +25,7 @@ async def client():
         yield ac
 
 
-# ─────────────────────────────────────────────
-# Health / Status
-# ─────────────────────────────────────────────
-@pytest.mark.anyio
-async def test_status_endpoint(client: AsyncClient):
-    """GET /status should return system health."""
-    response = await client.get("/api/v1/status")
-    assert response.status_code == 200
 
-    data = response.json()
-    assert data["status"] == "operational"
-    assert "udp_active" in data
-    assert "pg_listener_active" in data
-    assert "uptime_seconds" in data
 
 
 # ─────────────────────────────────────────────
